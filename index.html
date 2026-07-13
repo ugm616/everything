@@ -131,6 +131,9 @@
       cursor: pointer;
       box-shadow: 0 0 10px rgba(59, 130, 246, 0.18);
       transition: transform 0.04s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
 
     .click-progress-button:hover {
@@ -156,6 +159,9 @@
       font-size: 12px;
       color: #6b7280;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
 
     .lore-box {
@@ -288,11 +294,12 @@
       Loading: primordial pixels…
     </div>
 
-    <button id="click-progress-button" class="click-progress-button" disabled>
-      Inject +1% Progress
+    <button id="click-progress-button" class="click-progress-button" disabled hidden>
+      Inject Progress
     </button>
     <div class="click-progress-info" id="click-progress-info">
-      Unlock manual inject for 1 essence.
+      <div id="click-progress-line1">Unlock Manual Injector in Era Upgrades.</div>
+      <div id="click-progress-line2"></div>
     </div>
 
     <div class="lore-box" id="lore-box">
@@ -372,6 +379,20 @@
     "metaphysical": "Ideas begin to load reality itself."
   };
 
+  // Level table from Button Levels.md (era-gated and cost-gated)
+  const buttonLevels = [
+    { level: 1, click: 1, hold: 0, cost: 1, requiredEraIndex: 0 },
+    { level: 2, click: 1, hold: 1, cost: 12, requiredEraIndex: 1 },
+    { level: 3, click: 2, hold: 1, cost: 40, requiredEraIndex: 2 },
+    { level: 4, click: 2, hold: 2, cost: 110, requiredEraIndex: 3 },
+    { level: 5, click: 4, hold: 2, cost: 300, requiredEraIndex: 4 },
+    { level: 6, click: 4, hold: 4, cost: 750, requiredEraIndex: 5 },
+    { level: 7, click: 8, hold: 4, cost: 1800, requiredEraIndex: 6 },
+    { level: 8, click: 8, hold: 8, cost: 4200, requiredEraIndex: 7 },
+    { level: 9, click: 16, hold: 8, cost: 9500, requiredEraIndex: 8 },
+    { level: 10, click: 16, hold: 16, cost: 21000, requiredEraIndex: 9 }
+  ];
+
   const state = {
     progress: 0,
     speed: 1,
@@ -385,7 +406,8 @@
     metaUpgrades: [],    // from master JSON
     purchasedMeta: [],
     loreIndex: 0,
-    clickProgressUnlocked: false
+    buttonLevel: 0,
+    isHoldingButton: false
   };
 
   const loreLines = [
@@ -409,7 +431,32 @@
   const prestigeButtonEl = document.getElementById("prestige-button");
   const prestigeInfoEl = document.getElementById("prestige-info");
   const clickProgressButtonEl = document.getElementById("click-progress-button");
-  const clickProgressInfoEl = document.getElementById("click-progress-info");
+  const clickProgressLine1El = document.getElementById("click-progress-line1");
+  const clickProgressLine2El = document.getElementById("click-progress-line2");
+
+  function getCurrentEraIndex() {
+    return eraOrder.indexOf(state.currentEra);
+  }
+
+  function getCurrentButtonLevelData() {
+    if (state.buttonLevel <= 0) return null;
+    return buttonLevels[state.buttonLevel - 1] || null;
+  }
+
+  function getNextButtonLevelData() {
+    return buttonLevels[state.buttonLevel] || null;
+  }
+
+  function applyProgress(amount) {
+    if (amount <= 0) return;
+    state.progress += amount;
+
+    while (state.progress >= 100) {
+      completeLoadCycle();
+    }
+
+    barFillEl.style.width = Math.min(state.progress, 100) + "%";
+  }
 
   // --- Master JSON loading ---
   // Expected structure of upgrades.json:
@@ -450,16 +497,21 @@
   function renderEraUpgrades() {
     upgradeListEl.innerHTML = "";
 
-    const manualInjectUpgrade = {
-      id: "unlock-manual-inject",
-      name: "Manual Progress Injector",
-      cost: 1,
-      desc: "Unlock a button under the loading bar that adds +1% progress per click.",
-      purchased: state.clickProgressUnlocked
+    const currentButtonLevel = getCurrentButtonLevelData();
+    const nextButtonLevel = getNextButtonLevelData();
+    const currentEraIndex = getCurrentEraIndex();
+
+    const buttonUpgrade = {
+      id: "manual-injector-level",
+      name: nextButtonLevel ? `Manual Injector Lv.${nextButtonLevel.level}` : "Manual Injector MAX",
+      cost: nextButtonLevel ? nextButtonLevel.cost : 0,
+      desc: nextButtonLevel
+        ? `Upgrade to ${nextButtonLevel.click}%/click and ${nextButtonLevel.hold}%/sec hold.`
+        : `Maxed at ${currentButtonLevel ? currentButtonLevel.click : 0}%/click and ${currentButtonLevel ? currentButtonLevel.hold : 0}%/sec hold.`
     };
 
     const eraUpgrades = state.upgradesByEra[state.currentEra] || [];
-    const upgrades = [manualInjectUpgrade, ...eraUpgrades];
+    const upgrades = [buttonUpgrade, ...eraUpgrades];
 
     upgrades.forEach(upg => {
       const div = document.createElement("div");
@@ -474,50 +526,75 @@
 
       const cost = document.createElement("div");
       cost.className = "upgrade-cost";
-      cost.textContent = upg.id === "unlock-manual-inject"
-        ? (state.clickProgressUnlocked ? "Unlocked" : `Cost: ${upg.cost} essence`)
-        : `Cost: ${upg.cost} essence`;
-
-      header.appendChild(name);
-      header.appendChild(cost);
 
       const desc = document.createElement("div");
       desc.className = "upgrade-desc";
-      desc.textContent = upg.desc;
 
       const button = document.createElement("button");
 
-      if (upg.id === "unlock-manual-inject") {
-        button.textContent = state.clickProgressUnlocked ? "Purchased" : "Purchase";
-        button.disabled = state.clickProgressUnlocked || state.essence < upg.cost;
+      if (upg.id === "manual-injector-level") {
+        if (!nextButtonLevel) {
+          cost.textContent = "MAX";
+          desc.textContent = upg.desc;
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          const requiredEraName = eraDisplayNames[eraOrder[nextButtonLevel.requiredEraIndex]];
+          const eraUnlocked = currentEraIndex >= nextButtonLevel.requiredEraIndex;
+          const canAfford = state.essence >= nextButtonLevel.cost;
 
-        button.addEventListener("click", () => {
-          if (state.clickProgressUnlocked) return;
-          if (state.essence >= upg.cost) {
-            state.essence -= upg.cost;
-            state.clickProgressUnlocked = true;
-            loreBoxEl.textContent = "A manual injector hums to life beneath the bar.";
+          cost.textContent = `Cost: ${nextButtonLevel.cost} essence · Requires ${requiredEraName}`;
+
+          if (!eraUnlocked) {
+            desc.textContent = `Locked until ${requiredEraName}. Will upgrade to ${nextButtonLevel.click}%/click, ${nextButtonLevel.hold}%/sec hold.`;
+          } else {
+            desc.textContent = upg.desc;
+          }
+
+          button.textContent = "Purchase";
+          button.disabled = !(eraUnlocked && canAfford);
+
+          button.addEventListener("click", () => {
+            const nowEraIndex = getCurrentEraIndex();
+            if (nowEraIndex < nextButtonLevel.requiredEraIndex) return;
+            if (state.essence < nextButtonLevel.cost) return;
+
+            state.essence -= nextButtonLevel.cost;
+            state.buttonLevel = nextButtonLevel.level;
+
+            if (state.buttonLevel === 1) {
+              loreBoxEl.textContent = "A manual injector hums to life beneath the bar.";
+            } else {
+              loreBoxEl.textContent = `Manual injector reaches Lv.${state.buttonLevel}.`;
+            }
+
             updateStats();
             updateClickProgressUI();
             renderEraUpgrades();
-          }
-        });
+          });
+        }
       } else {
+        const upgCost = Number(upg.cost) || 0;
+
+        cost.textContent = `Cost: ${upgCost} essence`;
+        desc.textContent = upg.desc;
         button.textContent = "Purchase";
-        button.disabled = state.essence < upg.cost;
+        button.disabled = state.essence < upgCost;
 
         button.addEventListener("click", () => {
-          if (state.essence >= upg.cost) {
-            state.essence -= upg.cost;
+          if (state.essence >= upgCost) {
+            state.essence -= upgCost;
             applyUpgradeEffect(upg.effect || {});
             // simple scaling for repeat purchases
-            upg.cost = Math.floor(upg.cost * 1.8);
+            upg.cost = Math.max(1, Math.floor(upgCost * 1.8));
             updateStats();
             renderEraUpgrades();
           }
         });
       }
 
+      header.appendChild(name);
+      header.appendChild(cost);
       div.appendChild(header);
       div.appendChild(desc);
       div.appendChild(button);
@@ -552,14 +629,28 @@
   }
 
   function updateClickProgressUI() {
-    if (state.clickProgressUnlocked) {
-      clickProgressButtonEl.disabled = false;
-      clickProgressButtonEl.hidden = false;
-      clickProgressInfoEl.textContent = "Manual injector online. Each click adds +1% progress.";
-    } else {
+    const current = getCurrentButtonLevelData();
+    const next = getNextButtonLevelData();
+
+    if (!current) {
       clickProgressButtonEl.disabled = true;
       clickProgressButtonEl.hidden = true;
-      clickProgressInfoEl.textContent = "Unlock manual inject for 1 essence in Era Upgrades.";
+      clickProgressLine1El.textContent = "Unlock Manual Injector in Era Upgrades.";
+      clickProgressLine2El.textContent = "";
+      return;
+    }
+
+    clickProgressButtonEl.hidden = false;
+    clickProgressButtonEl.disabled = false;
+
+    clickProgressButtonEl.textContent = `Inject +${current.click}%`;
+    clickProgressLine1El.textContent = `Manual Injector Lv.${current.level} · ${current.click}%/click · ${current.hold}%/sec hold`;
+
+    if (next) {
+      const requiredEraName = eraDisplayNames[eraOrder[next.requiredEraIndex]];
+      clickProgressLine2El.textContent = `Next Lv.${next.level}: ${next.click}%/click, ${next.hold}%/sec hold · ${next.cost} essence · ${requiredEraName}`;
+    } else {
+      clickProgressLine2El.textContent = "Manual Injector maxed.";
     }
   }
 
@@ -581,6 +672,7 @@
         loreBoxEl.textContent = eraLore[nextEra] || "A new layer of reality begins to load.";
         updateEraDisplay();
         renderEraUpgrades();
+        updateClickProgressUI();
       }
     }
   }
@@ -620,6 +712,7 @@
     state.currentEra = "pixel-genesis";
     state.nextEraAt = 50;
     state.loreIndex = 0;
+    state.isHoldingButton = false;
 
     loreBoxEl.textContent =
       `Reality reboots. Echoes remain: ${gained} new memories of the universe.`;
@@ -642,27 +735,46 @@
     renderEraUpgrades();
     checkEraProgress();
     updatePrestigeUI();
-    updateClickProgressUI();
   }
 
-  clickProgressButtonEl.addEventListener("click", () => {
-    if (!state.clickProgressUnlocked) return;
+  function startHold() {
+    state.isHoldingButton = true;
+  }
 
-    state.progress += 1;
+  function stopHold() {
+    state.isHoldingButton = false;
+  }
 
-    while (state.progress >= 100) {
-      completeLoadCycle();
-    }
-
-    barFillEl.style.width = Math.min(state.progress, 100) + "%";
+  clickProgressButtonEl.addEventListener("pointerdown", (e) => {
+    if (state.buttonLevel <= 0) return;
+    e.preventDefault();
+    clickProgressButtonEl.setPointerCapture(e.pointerId);
+    applyProgress(getCurrentButtonLevelData().click);
+    startHold();
   });
+
+  clickProgressButtonEl.addEventListener("pointerup", (e) => {
+    stopHold();
+    if (clickProgressButtonEl.hasPointerCapture(e.pointerId)) {
+      clickProgressButtonEl.releasePointerCapture(e.pointerId);
+    }
+  });
+
+  clickProgressButtonEl.addEventListener("pointercancel", stopHold);
+  clickProgressButtonEl.addEventListener("pointerleave", stopHold);
+
+  window.addEventListener("pointerup", stopHold);
+  window.addEventListener("blur", stopHold);
 
   // --- Main loop ---
   function tick(dt) {
-    state.progress += state.speed * dt;
+    applyProgress(state.speed * dt);
 
-    while (state.progress >= 100) {
-      completeLoadCycle();
+    if (state.isHoldingButton && state.buttonLevel > 0) {
+      const holdRate = getCurrentButtonLevelData().hold;
+      if (holdRate > 0) {
+        applyProgress(holdRate * dt);
+      }
     }
 
     barFillEl.style.width = Math.min(state.progress, 100) + "%";
