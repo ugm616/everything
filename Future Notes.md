@@ -24,3 +24,5 @@ Everything Loader
 
 **Reboot Reality**
 * only thing saved from previous reboot are Echoes and any Meta Upgrades (Upgrades that are bought with Echoes).
+* From Era's 1-3, the game will be "Particles"
+* Era 4 will be "Hunting", in which a tooth-like shape will appear on the screen for a few seconds. it will appear randomly on the screen once every 5 cycles at a random time. Clicking on it will give the player 5 times the progress speed (rounded up the the nearest whole number).
