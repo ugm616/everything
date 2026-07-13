@@ -65,6 +65,21 @@
       gap: 24px;
       padding: 24px;
       position: relative;
+      overflow: hidden;
+    }
+
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .left > *:not(#particle-canvas) {
+      position: relative;
+      z-index: 1;
     }
 
     .right {
@@ -405,7 +420,9 @@
 </header>
 
 <main>
-  <section class="left">
+  <section class="left" id="left-panel">
+    <canvas id="particle-canvas"></canvas>
+
     <div class="bar-container">
       <div class="bar-inner">
         <div class="bar-fill" id="bar-fill"></div>
@@ -474,11 +491,27 @@
   const CLICK_WINDOW_SEC = 1.0;
   const COMBO_TRIGGER_CPS = 4;
   const COMBO_MAINTAIN_CPS = 3;
-  const COMBO_BONUS_PER_SECOND = 0.5; // +0.5% progress/sec per combo second sustained
+  const COMBO_BONUS_PER_SECOND = 0.5;
 
   const CYCLE_MILESTONE_STEP = 10;
   const CYCLE_REWARD_SPEED = 0.1;
   const CYCLE_REWARD_ESSENCE = 1;
+
+  // Hidden particle system constants
+  const PARTICLE_MIN_VALUE = 1;
+  const PARTICLE_MAX_VALUE = 32;
+  const PARTICLE_RESPAWN_DELAY = 10;
+  const PARTICLE_INITIAL_COUNT = 26;
+  const PARTICLE_MAX_COUNT = 32;
+  const PARTICLE_FADE_IN_SEC = 1.8;
+  const PARTICLE_REPEL_RADIUS = 92;
+  const PARTICLE_REPEL_STRENGTH = 180;
+  const PARTICLE_BASE_SPEED = 16;
+  const PARTICLE_SPEED_JITTER = 10;
+  const PARTICLE_FRICTION = 0.995;
+  const PARTICLE_BOUNCE = 0.985;
+  const PARTICLE_MERGE_FLASH_BASE = 0.22;
+  const PARTICLE_MERGE_FLASH_SCALE = 0.07;
 
   const eraOrder = [
     "pixel-genesis","single-cell","multicellular","evolutionary","human-emergence",
@@ -501,7 +534,6 @@
     "post-human":"Thought and matter blur.","metaphysical":"Ideas begin to load reality itself."
   };
 
-  // Era+cost gated manual injector
   const buttonLevels = [
     { level:1, click:1, hold:0, cost:1, requiredEraIndex:0 },
     { level:2, click:1, hold:1, cost:12, requiredEraIndex:1 },
@@ -515,7 +547,6 @@
     { level:10, click:16, hold:16, cost:21000, requiredEraIndex:9 }
   ];
 
-  // Cost-only combo levels from Combo Levels.md
   const comboLevels = [
     { level:1, maxSeconds:10, cooldown:60, cost:100 },
     { level:2, maxSeconds:20, cooldown:55, cost:200 },
@@ -576,6 +607,10 @@
   };
 
   // ---------- DOM ----------
+  const leftPanelEl = document.getElementById("left-panel");
+  const particleCanvasEl = document.getElementById("particle-canvas");
+  const particleCtx = particleCanvasEl.getContext("2d");
+
   const barFillEl = document.getElementById("bar-fill");
   const barLabelEl = document.getElementById("bar-label");
   const loreBoxEl = document.getElementById("lore-box");
@@ -601,6 +636,260 @@
   const milestoneBodyEl = document.getElementById("milestone-body");
   const milestoneSpeedBtnEl = document.getElementById("milestone-speed-btn");
   const milestoneEssenceBtnEl = document.getElementById("milestone-essence-btn");
+
+  // ---------- Particle System ----------
+  const particles = [];
+  const mergeFlashBursts = [];
+  let particleIdCounter = 1;
+  let particleRespawnTimer = 0;
+  const mouse = { x: 0, y: 0, inside: false };
+
+  function particleRadiusForValue(value) {
+    return 6 + Math.log2(value) * 3.2;
+  }
+
+  function particleColorForValue(value, alpha = 1) {
+    const step = Math.log2(value); // 0..5
+    const hue = 200 + step * 26;
+    const sat = 78;
+    const light = 58 + step * 3;
+    return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
+  }
+
+  function randomParticleVelocity() {
+    const angle = Math.random() * Math.PI * 2;
+    const mag = PARTICLE_BASE_SPEED + Math.random() * PARTICLE_SPEED_JITTER;
+    return { vx: Math.cos(angle) * mag, vy: Math.sin(angle) * mag };
+  }
+
+  function resizeParticleCanvas() {
+    const rect = leftPanelEl.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    particleCanvasEl.width = Math.max(1, Math.floor(rect.width * dpr));
+    particleCanvasEl.height = Math.max(1, Math.floor(rect.height * dpr));
+    particleCanvasEl.style.width = `${rect.width}px`;
+    particleCanvasEl.style.height = `${rect.height}px`;
+    particleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function spawnParticle(value = 1, fadeIn = true) {
+    const rect = leftPanelEl.getBoundingClientRect();
+    const radius = particleRadiusForValue(value);
+
+    const x = radius + Math.random() * Math.max(1, rect.width - radius * 2);
+    const y = radius + Math.random() * Math.max(1, rect.height - radius * 2);
+    const vel = randomParticleVelocity();
+
+    particles.push({
+      id: particleIdCounter++,
+      x, y,
+      vx: vel.vx,
+      vy: vel.vy,
+      value,
+      radius,
+      fade: fadeIn ? 0 : 1,
+      fadeInRate: 1 / PARTICLE_FADE_IN_SEC,
+      mergeCooldown: 0
+    });
+  }
+
+  function ensureParticlePopulationInstant() {
+    while (particles.length < PARTICLE_INITIAL_COUNT) {
+      spawnParticle(PARTICLE_MIN_VALUE, false);
+    }
+  }
+
+  function scheduleParticleRespawn() {
+    particleRespawnTimer = Math.max(particleRespawnTimer, PARTICLE_RESPAWN_DELAY);
+  }
+
+  function updateParticleRespawn(dt) {
+    if (particleRespawnTimer > 0) {
+      particleRespawnTimer = Math.max(0, particleRespawnTimer - dt);
+      return;
+    }
+    if (particles.length < PARTICLE_INITIAL_COUNT || particles.length < PARTICLE_MAX_COUNT) {
+      if (Math.random() < dt * 1.35) spawnParticle(1, true);
+    }
+  }
+
+  function addMergeFlash(x, y, value) {
+    const scale = Math.log2(value); // 1..5
+    mergeFlashBursts.push({
+      x, y,
+      age: 0,
+      life: 0.35 + scale * 0.04,
+      radius: 12 + scale * 8
+    });
+    state.flashIntensity = clamp(state.flashIntensity + PARTICLE_MERGE_FLASH_BASE + scale * PARTICLE_MERGE_FLASH_SCALE, 0, 2.2);
+    document.body.classList.add("combo-flash");
+  }
+
+  function mergeParticles(a, b) {
+    const mx = (a.x + b.x) * 0.5;
+    const my = (a.y + b.y) * 0.5;
+
+    if (a.value === PARTICLE_MAX_VALUE && b.value === PARTICLE_MAX_VALUE) {
+      const ia = particles.indexOf(a);
+      const ib = particles.indexOf(b);
+      if (ia >= 0) particles.splice(ia, 1);
+      const ib2 = particles.indexOf(b);
+      if (ib2 >= 0) particles.splice(ib2, 1);
+
+      state.essence += 1;
+      updateStats();
+      renderEraUpgrades();
+      addMergeFlash(mx, my, PARTICLE_MAX_VALUE);
+      scheduleParticleRespawn();
+      return;
+    }
+
+    const newValue = a.value * 2;
+    if (newValue > PARTICLE_MAX_VALUE) return;
+
+    const vel = {
+      vx: (a.vx + b.vx) * 0.5,
+      vy: (a.vy + b.vy) * 0.5
+    };
+
+    const ia = particles.indexOf(a);
+    const ib = particles.indexOf(b);
+    if (ia >= 0) particles.splice(ia, 1);
+    const ib2 = particles.indexOf(b);
+    if (ib2 >= 0) particles.splice(ib2, 1);
+
+    particles.push({
+      id: particleIdCounter++,
+      x: mx,
+      y: my,
+      vx: vel.vx,
+      vy: vel.vy,
+      value: newValue,
+      radius: particleRadiusForValue(newValue),
+      fade: 1,
+      fadeInRate: 1 / PARTICLE_FADE_IN_SEC,
+      mergeCooldown: 0.12
+    });
+
+    addMergeFlash(mx, my, newValue);
+    scheduleParticleRespawn();
+  }
+
+  function updateParticles(dt) {
+    const rect = leftPanelEl.getBoundingClientRect();
+
+    for (const p of particles) {
+      if (p.fade < 1) p.fade = Math.min(1, p.fade + p.fadeInRate * dt);
+      if (p.mergeCooldown > 0) p.mergeCooldown = Math.max(0, p.mergeCooldown - dt);
+
+      if (mouse.inside) {
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const distSq = dx * dx + dy * dy;
+        const radiusSq = PARTICLE_REPEL_RADIUS * PARTICLE_REPEL_RADIUS;
+        if (distSq > 0.0001 && distSq < radiusSq) {
+          const dist = Math.sqrt(distSq);
+          const nX = dx / dist;
+          const nY = dy / dist;
+          const strength = (1 - dist / PARTICLE_REPEL_RADIUS) * PARTICLE_REPEL_STRENGTH;
+          p.vx += nX * strength * dt;
+          p.vy += nY * strength * dt;
+        }
+      }
+
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      p.vx *= Math.pow(PARTICLE_FRICTION, dt * 60);
+      p.vy *= Math.pow(PARTICLE_FRICTION, dt * 60);
+
+      const r = p.radius;
+      if (p.x - r < 0) {
+        p.x = r;
+        p.vx = Math.abs(p.vx) * PARTICLE_BOUNCE;
+      } else if (p.x + r > rect.width) {
+        p.x = rect.width - r;
+        p.vx = -Math.abs(p.vx) * PARTICLE_BOUNCE;
+      }
+
+      if (p.y - r < 0) {
+        p.y = r;
+        p.vy = Math.abs(p.vy) * PARTICLE_BOUNCE;
+      } else if (p.y + r > rect.height) {
+        p.y = rect.height - r;
+        p.vy = -Math.abs(p.vy) * PARTICLE_BOUNCE;
+      }
+    }
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i];
+        const b = particles[j];
+        if (!a || !b) continue;
+        if (a.value !== b.value) continue;
+        if (a.mergeCooldown > 0 || b.mergeCooldown > 0) continue;
+
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const minDist = a.radius + b.radius;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq <= minDist * minDist) {
+          mergeParticles(a, b);
+          i = -1;
+          break;
+        }
+      }
+    }
+
+    for (let i = mergeFlashBursts.length - 1; i >= 0; i--) {
+      const f = mergeFlashBursts[i];
+      f.age += dt;
+      if (f.age >= f.life) mergeFlashBursts.splice(i, 1);
+    }
+  }
+
+  function drawParticles() {
+    const rect = leftPanelEl.getBoundingClientRect();
+    particleCtx.clearRect(0, 0, rect.width, rect.height);
+
+    for (const p of particles) {
+      const alpha = Math.max(0, Math.min(1, p.fade));
+      const glowAlpha = alpha * 0.33;
+
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, p.radius * 1.9, 0, Math.PI * 2);
+      particleCtx.fillStyle = particleColorForValue(p.value, glowAlpha);
+      particleCtx.fill();
+
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      particleCtx.fillStyle = particleColorForValue(p.value, alpha);
+      particleCtx.fill();
+
+      if (p.value > 1) {
+        particleCtx.fillStyle = `rgba(230, 245, 255, ${0.65 * alpha})`;
+        particleCtx.font = `${Math.max(9, p.radius)}px "Emilys Candy", cursive`;
+        particleCtx.textAlign = "center";
+        particleCtx.textBaseline = "middle";
+        particleCtx.fillText(String(p.value), p.x, p.y + 0.5);
+      }
+    }
+
+    for (const f of mergeFlashBursts) {
+      const t = f.age / f.life;
+      const alpha = (1 - t) * 0.55;
+      const r = f.radius * (0.4 + t);
+
+      const grd = particleCtx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+      grd.addColorStop(0, `rgba(180, 220, 255, ${alpha})`);
+      grd.addColorStop(1, `rgba(180, 220, 255, 0)`);
+      particleCtx.fillStyle = grd;
+      particleCtx.beginPath();
+      particleCtx.arc(f.x, f.y, r, 0, Math.PI * 2);
+      particleCtx.fill();
+    }
+  }
 
   // ---------- Helpers ----------
   function getCurrentEraIndex() { return eraOrder.indexOf(state.currentEra); }
@@ -799,6 +1088,11 @@
     state.cycleMilestonesClaimed = 0;
     state.milestoneChoicePending = false;
     hideMilestoneChoiceModal();
+
+    particles.length = 0;
+    mergeFlashBursts.length = 0;
+    particleRespawnTimer = 0;
+    ensureParticlePopulationInstant();
 
     clearSave();
 
@@ -1236,18 +1530,20 @@
     const dt = Math.max(0, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    // Keep simulation running even when milestone choice is pending
     const baseGain = getTotalSpeedPerSecond() * dt;
     applyProgress(baseGain);
 
-    // Manual hold only if no milestone choice is pending (player input gated)
     const currentButton = getCurrentButtonLevelData();
     if (!state.milestoneChoicePending && state.isHoldingButton && currentButton && currentButton.hold > 0) {
       applyProgress(currentButton.hold * dt);
     }
 
-    // Combo simulation can continue in background
     updateCombo(dt);
+
+    // hidden particles
+    updateParticles(dt);
+    updateParticleRespawn(dt);
+    drawParticles();
 
     updateBackgroundVisuals(dt);
     updateComboUI();
@@ -1286,6 +1582,15 @@
     clickProgressButtonEl.classList.remove("held");
   });
 
+  leftPanelEl.addEventListener("pointermove", (e) => {
+    const rect = leftPanelEl.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+    mouse.inside = true;
+  });
+  leftPanelEl.addEventListener("pointerenter", () => { mouse.inside = true; });
+  leftPanelEl.addEventListener("pointerleave", () => { mouse.inside = false; });
+
   milestoneSpeedBtnEl.addEventListener("click", () => chooseMilestoneReward("speed"));
   milestoneEssenceBtnEl.addEventListener("click", () => chooseMilestoneReward("essence"));
 
@@ -1295,6 +1600,12 @@
     state.echoes += gain;
     loreBoxEl.textContent = `Reality rebooted. You gained ${gain} Echoes.`;
     resetRunStateForPrestige();
+
+    particles.length = 0;
+    mergeFlashBursts.length = 0;
+    particleRespawnTimer = 0;
+    ensureParticlePopulationInstant();
+
     updateStats();
     updateEraDisplay();
     updatePrestigeUI();
@@ -1305,7 +1616,6 @@
     saveGame("prestige");
   });
 
-  // hidden triple-click in 2.5s to hard reset
   hiddenResetTriggerEl.addEventListener("click", () => {
     const now = performance.now();
     if (state.resetStageTimer && (now - state.resetStageTimer > 2500)) state.resetStage = 0;
@@ -1317,6 +1627,8 @@
     }
   });
 
+  window.addEventListener("resize", resizeParticleCanvas);
+
   // Save hooks
   window.addEventListener("beforeunload", () => saveGame("exit"));
   document.addEventListener("visibilitychange", () => {
@@ -1326,6 +1638,8 @@
 
   // Boot
   loadMasterJSON().then(() => {
+    resizeParticleCanvas();
+    ensureParticlePopulationInstant();
     lastTs = performance.now();
     requestAnimationFrame(gameLoop);
   });
