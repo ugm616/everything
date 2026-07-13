@@ -1018,16 +1018,21 @@
 
   prestigeButtonEl.addEventListener("click", performPrestige);
 
-  function completeLoadCycle() {
-    state.progress -= 100;
-    state.loads += 1;
-    state.essence += state.essencePerLoad;
-    nextLore();
-    updateStats();
-    renderEraUpgrades();
-    checkEraProgress();
-    updatePrestigeUI();
-  }
+function completeLoadCycle() {
+  state.progress -= 100;
+  state.loads += 1;
+  state.essence += state.essencePerLoad;
+
+  nextLore();
+  checkEraProgress();
+
+  // Always refresh label so "(X cycles)" updates immediately
+  updateEraDisplay();
+
+  updateStats();
+  renderEraUpgrades();
+  updatePrestigeUI();
+}
 
   // ---------- Combo ----------
   function registerClickAndCheckCombo() {
