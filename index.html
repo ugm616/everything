@@ -120,6 +120,44 @@
       text-align: center;
     }
 
+    .click-progress-button {
+      margin-top: -8px;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #030712;
+      color: #e5e7eb;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.18);
+      transition: transform 0.04s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+
+    .click-progress-button:hover {
+      border-color: #4b5563;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.28);
+    }
+
+    .click-progress-button:active {
+      transform: translateY(1px) scale(0.995);
+    }
+
+    .click-progress-button:disabled {
+      opacity: 0.35;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .click-progress-info {
+      margin-top: -16px;
+      width: 80%;
+      max-width: 640px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+    }
+
     .lore-box {
       width: 80%;
       max-width: 640px;
@@ -250,6 +288,13 @@
       Loading: primordial pixels…
     </div>
 
+    <button id="click-progress-button" class="click-progress-button" disabled>
+      Inject +1% Progress
+    </button>
+    <div class="click-progress-info" id="click-progress-info">
+      Unlock manual inject for 1 essence.
+    </div>
+
     <div class="lore-box" id="lore-box">
       The universe is idle. The bar begins to move.
     </div>
@@ -339,7 +384,8 @@
     upgradesByEra: {},   // from master JSON
     metaUpgrades: [],    // from master JSON
     purchasedMeta: [],
-    loreIndex: 0
+    loreIndex: 0,
+    clickProgressUnlocked: false
   };
 
   const loreLines = [
@@ -362,6 +408,8 @@
   const upgradeListEl = document.getElementById("upgrade-list");
   const prestigeButtonEl = document.getElementById("prestige-button");
   const prestigeInfoEl = document.getElementById("prestige-info");
+  const clickProgressButtonEl = document.getElementById("click-progress-button");
+  const clickProgressInfoEl = document.getElementById("click-progress-info");
 
   // --- Master JSON loading ---
   // Expected structure of upgrades.json:
@@ -390,16 +438,28 @@
       updateStats();
       updateEraDisplay();
       updatePrestigeUI();
+      updateClickProgressUI();
     } catch (e) {
       console.error("Failed to load upgrades.json", e);
       loreBoxEl.textContent = "The universe hesitates. (upgrades.json not found)";
+      updateClickProgressUI();
     }
   }
 
   // --- Rendering ---
   function renderEraUpgrades() {
     upgradeListEl.innerHTML = "";
-    const upgrades = state.upgradesByEra[state.currentEra] || [];
+
+    const manualInjectUpgrade = {
+      id: "unlock-manual-inject",
+      name: "Manual Progress Injector",
+      cost: 1,
+      desc: "Unlock a button under the loading bar that adds +1% progress per click.",
+      purchased: state.clickProgressUnlocked
+    };
+
+    const eraUpgrades = state.upgradesByEra[state.currentEra] || [];
+    const upgrades = [manualInjectUpgrade, ...eraUpgrades];
 
     upgrades.forEach(upg => {
       const div = document.createElement("div");
@@ -414,7 +474,9 @@
 
       const cost = document.createElement("div");
       cost.className = "upgrade-cost";
-      cost.textContent = `Cost: ${upg.cost} essence`;
+      cost.textContent = upg.id === "unlock-manual-inject"
+        ? (state.clickProgressUnlocked ? "Unlocked" : `Cost: ${upg.cost} essence`)
+        : `Cost: ${upg.cost} essence`;
 
       header.appendChild(name);
       header.appendChild(cost);
@@ -424,19 +486,37 @@
       desc.textContent = upg.desc;
 
       const button = document.createElement("button");
-      button.textContent = "Purchase";
-      button.disabled = state.essence < upg.cost;
 
-      button.addEventListener("click", () => {
-        if (state.essence >= upg.cost) {
-          state.essence -= upg.cost;
-          applyUpgradeEffect(upg.effect || {});
-          // simple scaling for repeat purchases
-          upg.cost = Math.floor(upg.cost * 1.8);
-          updateStats();
-          renderEraUpgrades();
-        }
-      });
+      if (upg.id === "unlock-manual-inject") {
+        button.textContent = state.clickProgressUnlocked ? "Purchased" : "Purchase";
+        button.disabled = state.clickProgressUnlocked || state.essence < upg.cost;
+
+        button.addEventListener("click", () => {
+          if (state.clickProgressUnlocked) return;
+          if (state.essence >= upg.cost) {
+            state.essence -= upg.cost;
+            state.clickProgressUnlocked = true;
+            loreBoxEl.textContent = "A manual injector hums to life beneath the bar.";
+            updateStats();
+            updateClickProgressUI();
+            renderEraUpgrades();
+          }
+        });
+      } else {
+        button.textContent = "Purchase";
+        button.disabled = state.essence < upg.cost;
+
+        button.addEventListener("click", () => {
+          if (state.essence >= upg.cost) {
+            state.essence -= upg.cost;
+            applyUpgradeEffect(upg.effect || {});
+            // simple scaling for repeat purchases
+            upg.cost = Math.floor(upg.cost * 1.8);
+            updateStats();
+            renderEraUpgrades();
+          }
+        });
+      }
 
       div.appendChild(header);
       div.appendChild(desc);
@@ -469,6 +549,18 @@
   function updateEraDisplay() {
     eraNameEl.textContent = eraDisplayNames[state.currentEra] || state.currentEra;
     barLabelEl.textContent = `Loading: ${eraLore[state.currentEra] || "something indescribable"}… (${state.loads} cycles)`;
+  }
+
+  function updateClickProgressUI() {
+    if (state.clickProgressUnlocked) {
+      clickProgressButtonEl.disabled = false;
+      clickProgressButtonEl.hidden = false;
+      clickProgressInfoEl.textContent = "Manual injector online. Each click adds +1% progress.";
+    } else {
+      clickProgressButtonEl.disabled = true;
+      clickProgressButtonEl.hidden = true;
+      clickProgressInfoEl.textContent = "Unlock manual inject for 1 essence in Era Upgrades.";
+    }
   }
 
   function nextLore() {
@@ -536,23 +628,41 @@
     updateEraDisplay();
     renderEraUpgrades();
     updatePrestigeUI();
+    updateClickProgressUI();
   }
 
   prestigeButtonEl.addEventListener("click", performPrestige);
+
+  function completeLoadCycle() {
+    state.progress -= 100;
+    state.loads += 1;
+    state.essence += state.essencePerLoad;
+    nextLore();
+    updateStats();
+    renderEraUpgrades();
+    checkEraProgress();
+    updatePrestigeUI();
+    updateClickProgressUI();
+  }
+
+  clickProgressButtonEl.addEventListener("click", () => {
+    if (!state.clickProgressUnlocked) return;
+
+    state.progress += 1;
+
+    while (state.progress >= 100) {
+      completeLoadCycle();
+    }
+
+    barFillEl.style.width = Math.min(state.progress, 100) + "%";
+  });
 
   // --- Main loop ---
   function tick(dt) {
     state.progress += state.speed * dt;
 
-    if (state.progress >= 100) {
-      state.progress -= 100;
-      state.loads += 1;
-      state.essence += state.essencePerLoad;
-      nextLore();
-      updateStats();
-      renderEraUpgrades();
-      checkEraProgress();
-      updatePrestigeUI();
+    while (state.progress >= 100) {
+      completeLoadCycle();
     }
 
     barFillEl.style.width = Math.min(state.progress, 100) + "%";
