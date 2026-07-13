@@ -12,7 +12,7 @@ Everything Loader
 * Multi Purchase - Buy Repeatedly, cheaper cost, not as effective
 * Speed Upgrades - Used to speed up the Loading Bar
 * Power Upgrades - Used to drop more Essence per Loading Bar completion
-* Player will choose on the skill tree "Power" or "Speed".
+* Player will choose on the skill tree "Power" or "Speed". After choosing one, they will be able to unlock the other for 100 Echoes.
 
 **Particles**
 * Combine to marge and remove
