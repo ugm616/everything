@@ -636,7 +636,7 @@ function renderUpgrades() {
         <strong>${u.name}</strong>
         <span class="effect">${u.desc}</span><br>
         <span class="cost">Cost: ${formatNum(u.cost)}</span>
-        ${u.requires ? `<br><span style="color:var(--text-dim)">Needs ${u.requires} ${u.building}</span>` : ''}
+        ${u.requires ? `<br><span style="color:var(--text-dim)">Needs ${u.requires} ${BUILDINGS.find(b => b.id === u.building)?.name || u.building}s</span>` : ''}
       </div>`;
     if (!purchased) btn.onclick = () => buyUpgrade(u.id);
     list.appendChild(btn);
@@ -704,13 +704,15 @@ function loadGame() {
     G.unlockedAchievements = new Set(data.unlockedAchievements || []);
 
     // offline earnings
-    const offlineSec = ((Date.now() - (data.lastSave || Date.now())) / 1000);
-    if (offlineSec > 5) {
-      const offlineEarned = totalCps() * offlineSec * 0.5; // 50% offline rate
-      if (offlineEarned > 0) {
-        G.things  += offlineEarned;
-        G.allTime += offlineEarned;
-        showMilestone('⏱️ Offline: +' + formatNum(offlineEarned) + ' Things');
+    if (data.lastSave) {
+      const offlineSec = (Date.now() - data.lastSave) / 1000;
+      if (offlineSec > 5) {
+        const offlineEarned = totalCps() * offlineSec * 0.5; // 50% offline rate
+        if (offlineEarned > 0) {
+          G.things  += offlineEarned;
+          G.allTime += offlineEarned;
+          showMilestone('⏱️ Offline: +' + formatNum(offlineEarned) + ' Things');
+        }
       }
     }
   } catch (e) {
@@ -734,7 +736,7 @@ function confirmReset() {
 function formatNum(n) {
   if (!isFinite(n)) return '0';
   n = Math.floor(n * 10) / 10;
-  if (n < 1000)       return n % 1 === 0 ? n.toString() : n.toFixed(1);
+  if (n < 1000)       return Number.isInteger(n) ? n.toString() : n.toFixed(1);
   if (n < 1e6)        return (n/1e3).toFixed(2)  + 'K';
   if (n < 1e9)        return (n/1e6).toFixed(2)  + 'M';
   if (n < 1e12)       return (n/1e9).toFixed(2)  + 'B';
