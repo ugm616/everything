@@ -1084,7 +1084,7 @@
     }
 
     clickProgressButtonEl.hidden = false;
-    clickProgressButtonEl.disabled = false;
+    clickProgressButtonEl.disabled = state.milestoneChoicePending;
     clickProgressButtonEl.textContent = `Inject +${current.click}%`;
     clickProgressLine1El.textContent = `Manual Injector Lv.${current.level} · ${current.click}%/click · ${current.hold}%/sec hold`;
 
@@ -1236,21 +1236,23 @@
     const dt = Math.max(0, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    if (!state.milestoneChoicePending) {
-      const baseGain = getTotalSpeedPerSecond() * dt;
-      applyProgress(baseGain);
+    // Keep simulation running even when milestone choice is pending
+    const baseGain = getTotalSpeedPerSecond() * dt;
+    applyProgress(baseGain);
 
-      const currentButton = getCurrentButtonLevelData();
-      if (state.isHoldingButton && currentButton && currentButton.hold > 0) {
-        applyProgress(currentButton.hold * dt);
-      }
-
-      updateCombo(dt);
+    // Manual hold only if no milestone choice is pending (player input gated)
+    const currentButton = getCurrentButtonLevelData();
+    if (!state.milestoneChoicePending && state.isHoldingButton && currentButton && currentButton.hold > 0) {
+      applyProgress(currentButton.hold * dt);
     }
+
+    // Combo simulation can continue in background
+    updateCombo(dt);
 
     updateBackgroundVisuals(dt);
     updateComboUI();
     updatePrestigeUI();
+    updateClickProgressUI();
     updateRunBonusUI();
     requestAnimationFrame(gameLoop);
   }
