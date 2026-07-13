@@ -913,6 +913,12 @@
     return state.speed + state.runSpeedBonus;
   }
 
+  function getHoldSpeedPerSecond() {
+    if (state.milestoneChoicePending || !state.isHoldingButton) return 0;
+    const currentButton = getCurrentButtonLevelData();
+    return currentButton ? currentButton.hold : 0;
+  }
+
   function getNextCycleMilestoneAt() {
     return (state.cycleMilestonesClaimed + 1) * CYCLE_MILESTONE_STEP;
   }
@@ -1526,26 +1532,13 @@
   }
 
   let lastTs = performance.now();
-  let holdAccum = 0;
-  const HOLD_STEP = 1 / 60;
 
   function gameLoop(ts) {
     const dt = Math.max(0, (ts - lastTs) / 1000);
     lastTs = ts;
 
-    const baseGain = getTotalSpeedPerSecond() * dt;
-    applyProgress(baseGain);
-
-    const currentButton = getCurrentButtonLevelData();
-    if (!state.milestoneChoicePending && state.isHoldingButton && currentButton && currentButton.hold > 0) {
-      holdAccum += dt;
-      while (holdAccum >= HOLD_STEP) {
-        applyProgress(currentButton.hold * HOLD_STEP);
-        holdAccum -= HOLD_STEP;
-      }
-    } else {
-      holdAccum = 0;
-    }
+    const effectiveSpeed = getTotalSpeedPerSecond() + getHoldSpeedPerSecond();
+    applyProgress(effectiveSpeed * dt);
 
     updateCombo(dt);
 
