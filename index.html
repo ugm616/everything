@@ -375,7 +375,7 @@
   // }
   async function loadMasterJSON() {
     try {
-      const res = await fetch("upgrades.json");
+      const data = await fetch("upgrades.json");
       const data = await res.json();
 
       state.upgradesByEra = data.eras || {};
