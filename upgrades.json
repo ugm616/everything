@@ -985,5 +985,76 @@
       }
     ]
   },
-  "meta": []
+  "meta": [
+    {
+      "id": "echo-genesis-1",
+      "name": "Echo Genesis I",
+      "desc": "+20% base progress speed on every run.",
+      "cost": 5,
+      "effect": { "globalSpeedMultiplier": 0.2 }
+    },
+    {
+      "id": "echo-genesis-2",
+      "name": "Echo Genesis II",
+      "desc": "+30% base progress speed on every run.",
+      "cost": 10,
+      "effect": { "globalSpeedMultiplier": 0.3 }
+    },
+    {
+      "id": "resonant-core",
+      "name": "Resonant Core",
+      "desc": "+1 essence per load permanently.",
+      "cost": 12,
+      "effect": { "globalEssencePerLoad": 1 }
+    },
+    {
+      "id": "resonant-core-2",
+      "name": "Resonant Core II",
+      "desc": "+2 essence per load permanently.",
+      "cost": 20,
+      "effect": { "globalEssencePerLoad": 2 }
+    },
+    {
+      "id": "injector-overclock",
+      "name": "Injector Overclock",
+      "desc": "Manual injector clicks are 25% stronger.",
+      "cost": 15,
+      "effect": { "manualClickMultiplier": 0.25 }
+    },
+    {
+      "id": "stability-loop",
+      "name": "Stability Loop",
+      "desc": "Combo cooldown reduced by 15%.",
+      "cost": 18,
+      "effect": { "comboCooldownMultiplier": -0.15 }
+    },
+    {
+      "id": "memory-lattice",
+      "name": "Memory Lattice",
+      "desc": "Start each run with 50 essence.",
+      "cost": 22,
+      "effect": { "startingEssence": 50 }
+    },
+    {
+      "id": "chrono-cache",
+      "name": "Chrono Cache",
+      "desc": "Autosave interval improved by 50%.",
+      "cost": 14,
+      "effect": { "autosaveMultiplier": -0.5 }
+    },
+    {
+      "id": "era-accelerator",
+      "name": "Era Accelerator",
+      "desc": "Era thresholds are 10% easier.",
+      "cost": 25,
+      "effect": { "eraThresholdMultiplier": -0.1 }
+    },
+    {
+      "id": "echo-capacitor",
+      "name": "Echo Capacitor",
+      "desc": "Gain +1 additional Echo on every reboot.",
+      "cost": 30,
+      "effect": { "bonusEchoesOnPrestige": 1 }
+    }
+  ]
 }
