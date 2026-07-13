@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Everything Loader</title>
+
+  <!-- Emilys Candy font -->
+  <link href="https://fonts.googleapis.com/css2?family=Emilys+Candy&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Emilys Candy", cursive;
+      background: #05060a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #111827;
+      background: #02030a;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .title {
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 16px;
+      color: #f9fafb;
+    }
+
+    .stats {
+      font-size: 13px;
+      color: #d1d5db;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .left {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .right {
+      flex: 1;
+      border-left: 1px solid #111827;
+      background: #020617;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .bar-container {
+      width: 80%;
+      max-width: 640px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+      box-shadow:
+        0 0 0 1px #111827,
+        0 0 24px rgba(59, 130, 246, 0.25);
+      padding: 3px;
+    }
+
+    .bar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background: #020617;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7);
+      box-shadow:
+        0 0 12px rgba(34, 197, 94, 0.6),
+        0 0 24px rgba(59, 130, 246, 0.4);
+      transition: width 0.08s linear;
+    }
+
+    .bar-label {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    .lore-box {
+      width: 80%;
+      max-width: 640px;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      background: radial-gradient(circle at top left, #020617 0%, #020617 40%, #000 100%);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #9ca3af;
+      min-height: 40px;
+    }
+
+    .upgrade-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .upgrade {
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #030712;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .upgrade-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .upgrade-name {
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+
+    .upgrade-cost {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .upgrade-desc {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    .upgrade button {
+      margin-top: 4px;
+      align-self: flex-end;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+      background: #030712;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    .upgrade button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .prestige-box {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px dashed #4b5563;
+      background: #020617;
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prestige-button {
+      align-self: flex-start;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #f97316;
+      background: #111827;
+      color: #fed7aa;
+      cursor: pointer;
+    }
+
+    .prestige-button:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    footer {
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #4b5563;
+      border-top: 1px solid #111827;
+      background: #02030a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">Everything Loader</div>
+  <div class="stats">
+    Era: <span id="era-name">Pixel Genesis</span> ·
+    Loads: <span id="loads">0</span> ·
+    Essence: <span id="essence">0</span> ·
+    Echoes: <span id="echoes">0</span>
+  </div>
+</header>
+
+<main>
+  <section class="left">
+    <div class="bar-container">
+      <div class="bar-inner">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+    </div>
+    <div class="bar-label" id="bar-label">
+      Loading: primordial pixels…
+    </div>
+
+    <div class="lore-box" id="lore-box">
+      The universe is idle. The bar begins to move.
+    </div>
+  </section>
+
+  <aside class="right">
+    <div>
+      <div class="section-title">Era Upgrades</div>
+      <div class="upgrade-list" id="upgrade-list"></div>
+    </div>
+
+    <div>
+      <div class="section-title">Prestige · Reboot Reality</div>
+      <div class="prestige-box">
+        <div id="prestige-info">
+          Reboot the universe to gain Echoes and permanent meta‑upgrades.
+        </div>
+        <button id="prestige-button" class="prestige-button" disabled>
+          Reboot Reality
+        </button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div>Progress speed: <span id="speed-display">1.0</span>% / sec</div>
+  <div>v0.3 · Master JSON, eras, prestige hooks.</div>
+</footer>
+
+<script>
+  // --- Core state ---
+  const eraOrder = [
+    "pixel-genesis",
+    "single-cell",
+    "multicellular",
+    "evolutionary",
+    "human-emergence",
+    "agricultural",
+    "civilization",
+    "industrial",
+    "digital",
+    "space",
+    "post-human",
+    "metaphysical"
+  ];
+
+  const eraDisplayNames = {
+    "pixel-genesis": "Pixel Genesis",
+    "single-cell": "Single-Cell Era",
+    "multicellular": "Multicellular Era",
+    "evolutionary": "Evolutionary Era",
+    "human-emergence": "Human Emergence",
+    "agricultural": "Agricultural Era",
+    "civilization": "Civilization Era",
+    "industrial": "Industrial Era",
+    "digital": "Digital Era",
+    "space": "Space Era",
+    "post-human": "Post-Human Era",
+    "metaphysical": "Metaphysical Era"
+  };
+
+  const eraLore = {
+    "pixel-genesis": "Pixels flicker into existence.",
+    "single-cell": "Life begins as a quiet ripple.",
+    "multicellular": "Cells learn to cooperate.",
+    "evolutionary": "Forms diversify under unseen pressures.",
+    "human-emergence": "Hands shape tools; minds shape futures.",
+    "agricultural": "Fields and villages anchor time.",
+    "civilization": "Cities rise; stories spread.",
+    "industrial": "Steam and steel accelerate destiny.",
+    "digital": "Information becomes the new oxygen.",
+    "space": "Distance becomes a solvable problem.",
+    "post-human": "Thought and matter blur.",
+    "metaphysical": "Ideas begin to load reality itself."
+  };
+
+  const state = {
+    progress: 0,
+    speed: 1,
+    essence: 0,
+    loads: 0,
+    echoes: 0,
+    essencePerLoad: 1,
+    currentEra: "pixel-genesis",
+    nextEraAt: 50, // loads needed for next era (example)
+    upgradesByEra: {},   // from master JSON
+    metaUpgrades: [],    // from master JSON
+    purchasedMeta: [],
+    loreIndex: 0
+  };
+
+  const loreLines = [
+    "Pixels remember the universe before it existed.",
+    "Each completed bar is a tiny rehearsal for reality.",
+    "Progress is just patience with a good UI.",
+    "You are watching time become visible.",
+    "Every idle moment is secretly loading something."
+  ];
+
+  // --- DOM refs ---
+  const barFillEl = document.getElementById("bar-fill");
+  const barLabelEl = document.getElementById("bar-label");
+  const loreBoxEl = document.getElementById("lore-box");
+  const loadsEl = document.getElementById("loads");
+  const essenceEl = document.getElementById("essence");
+  const echoesEl = document.getElementById("echoes");
+  const speedDisplayEl = document.getElementById("speed-display");
+  const eraNameEl = document.getElementById("era-name");
+  const upgradeListEl = document.getElementById("upgrade-list");
+  const prestigeButtonEl = document.getElementById("prestige-button");
+  const prestigeInfoEl = document.getElementById("prestige-info");
+
+  // --- Master JSON loading ---
+  // Expected structure of upgrades.json:
+  // {
+  //   "eras": {
+  //     "pixel-genesis": [ { ...upgrade }, ... ],
+  //     "human-emergence": [ { ...upgrade }, ... ],
+  //     ...
+  //   },
+  //   "meta": [ { ...prestigeUpgrade }, ... ]
+  // }
+  async function loadMasterJSON() {
+    try {
+      const res = await fetch("upgrades.json");
+      const data = await res.json();
+
+      state.upgradesByEra = data.eras || {};
+      state.metaUpgrades = data.meta || [];
+
+      // Ensure current era upgrades exist
+      if (!state.upgradesByEra[state.currentEra]) {
+        state.upgradesByEra[state.currentEra] = [];
+      }
+
+      renderEraUpgrades();
+      updateStats();
+      updateEraDisplay();
+      updatePrestigeUI();
+    } catch (e) {
+      console.error("Failed to load upgrades.json", e);
+      loreBoxEl.textContent = "The universe hesitates. (upgrades.json not found)";
+    }
+  }
+
+  // --- Rendering ---
+  function renderEraUpgrades() {
+    upgradeListEl.innerHTML = "";
+    const upgrades = state.upgradesByEra[state.currentEra] || [];
+
+    upgrades.forEach(upg => {
+      const div = document.createElement("div");
+      div.className = "upgrade";
+
+      const header = document.createElement("div");
+      header.className = "upgrade-header";
+
+      const name = document.createElement("div");
+      name.className = "upgrade-name";
+      name.textContent = upg.name;
+
+      const cost = document.createElement("div");
+      cost.className = "upgrade-cost";
+      cost.textContent = `Cost: ${upg.cost} essence`;
+
+      header.appendChild(name);
+      header.appendChild(cost);
+
+      const desc = document.createElement("div");
+      desc.className = "upgrade-desc";
+      desc.textContent = upg.desc;
+
+      const button = document.createElement("button");
+      button.textContent = "Purchase";
+      button.disabled = state.essence < upg.cost;
+
+      button.addEventListener("click", () => {
+        if (state.essence >= upg.cost) {
+          state.essence -= upg.cost;
+          applyUpgradeEffect(upg.effect || {});
+          // simple scaling for repeat purchases
+          upg.cost = Math.floor(upg.cost * 1.8);
+          updateStats();
+          renderEraUpgrades();
+        }
+      });
+
+      div.appendChild(header);
+      div.appendChild(desc);
+      div.appendChild(button);
+      upgradeListEl.appendChild(div);
+    });
+  }
+
+  function applyUpgradeEffect(effect) {
+    if (effect.speed) {
+      state.speed += effect.speed;
+    }
+    if (effect.essencePerLoad) {
+      state.essencePerLoad += effect.essencePerLoad;
+    }
+    if (effect.layerUnlock) {
+      // could be used to jump eras or unlock special ones
+      // placeholder hook
+      console.log("Layer unlock:", effect.layerUnlock);
+    }
+  }
+
+  function updateStats() {
+    loadsEl.textContent = state.loads;
+    essenceEl.textContent = state.essence;
+    echoesEl.textContent = state.echoes;
+    speedDisplayEl.textContent = state.speed.toFixed(1);
+  }
+
+  function updateEraDisplay() {
+    eraNameEl.textContent = eraDisplayNames[state.currentEra] || state.currentEra;
+    barLabelEl.textContent = `Loading: ${eraLore[state.currentEra] || "something indescribable"}… (${state.loads} cycles)`;
+  }
+
+  function nextLore() {
+    const line = loreLines[state.loreIndex % loreLines.length];
+    state.loreIndex++;
+    loreBoxEl.textContent = line;
+  }
+
+  // --- Era progression ---
+  function checkEraProgress() {
+    if (state.loads >= state.nextEraAt) {
+      const currentIndex = eraOrder.indexOf(state.currentEra);
+      const nextEra = eraOrder[currentIndex + 1];
+
+      if (nextEra) {
+        state.currentEra = nextEra;
+        state.nextEraAt *= 2; // simple exponential spacing
+        loreBoxEl.textContent = eraLore[nextEra] || "A new layer of reality begins to load.";
+        updateEraDisplay();
+        renderEraUpgrades();
+      }
+    }
+  }
+
+  // --- Prestige system ---
+  function calculateEchoGain() {
+    // Simple formula: echoes based on loads and highest era reached
+    const eraIndex = eraOrder.indexOf(state.currentEra);
+    const base = Math.floor(state.loads / 50);
+    return Math.max(0, base + eraIndex);
+  }
+
+  function canPrestige() {
+    // Example condition: at least 100 loads
+    return state.loads >= 100;
+  }
+
+  function updatePrestigeUI() {
+    const gain = calculateEchoGain();
+    prestigeInfoEl.textContent =
+      `Reboot now to gain approximately ${gain} Echoes based on this run.`;
+    prestigeButtonEl.disabled = !canPrestige();
+  }
+
+  function performPrestige() {
+    if (!canPrestige()) return;
+
+    const gained = calculateEchoGain();
+    state.echoes += gained;
+
+    // Reset run state
+    state.progress = 0;
+    state.essence = 0;
+    state.loads = 0;
+    state.speed = 1;
+    state.essencePerLoad = 1;
+    state.currentEra = "pixel-genesis";
+    state.nextEraAt = 50;
+    state.loreIndex = 0;
+
+    loreBoxEl.textContent =
+      `Reality reboots. Echoes remain: ${gained} new memories of the universe.`;
+
+    updateStats();
+    updateEraDisplay();
+    renderEraUpgrades();
+    updatePrestigeUI();
+  }
+
+  prestigeButtonEl.addEventListener("click", performPrestige);
+
+  // --- Main loop ---
+  function tick(dt) {
+    state.progress += state.speed * dt;
+
+    if (state.progress >= 100) {
+      state.progress -= 100;
+      state.loads += 1;
+      state.essence += state.essencePerLoad;
+      nextLore();
+      updateStats();
+      renderEraUpgrades();
+      checkEraProgress();
+      updatePrestigeUI();
+    }
+
+    barFillEl.style.width = Math.min(state.progress, 100) + "%";
+  }
+
+  let lastTime = performance.now();
+  function loop(now) {
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+    tick(dt);
+    requestAnimationFrame(loop);
+  }
+
+  // --- Init ---
+  loadMasterJSON();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

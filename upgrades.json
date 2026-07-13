@@ -1,0 +1,1096 @@
+{
+  "eras": {
+    "pixel-genesis": [
+      {
+        "id": "pixel-throughput-1",
+        "name": "Pixel Throughput I",
+        "desc": "+0.5% progress per second.",
+        "cost": 10,
+        "effect": { "speed": 0.5 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-throughput-2",
+        "name": "Pixel Throughput II",
+        "desc": "+1% progress per second.",
+        "cost": 25,
+        "effect": { "speed": 1 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "rgb-splitter",
+        "name": "RGB Splitter",
+        "desc": "Separates channels for faster rendering.",
+        "cost": 40,
+        "effect": { "speed": 1.2 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-compression",
+        "name": "Pixel Compression",
+        "desc": "+1 essence per load.",
+        "cost": 50,
+        "effect": { "essencePerLoad": 1 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-overclock",
+        "name": "Pixel Overclock",
+        "desc": "Pixels load 20% faster.",
+        "cost": 75,
+        "effect": { "speed": 2 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-quantum",
+        "name": "Quantum Pixel",
+        "desc": "Pixels exist in multiple states. +2 essence per load.",
+        "cost": 120,
+        "effect": { "essencePerLoad": 2 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-entanglement",
+        "name": "Pixel Entanglement",
+        "desc": "Progress increases slightly faster over time.",
+        "cost": 150,
+        "effect": { "speed": 2.5 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-parallel",
+        "name": "Parallel Pixel Rendering",
+        "desc": "Small boost to speed.",
+        "cost": 200,
+        "effect": { "speed": 3 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-harmonics",
+        "name": "Pixel Harmonics",
+        "desc": "Pixels resonate, increasing load rewards.",
+        "cost": 250,
+        "effect": { "essencePerLoad": 2 },
+        "era": "pixel-genesis"
+      },
+      {
+        "id": "pixel-singularity",
+        "name": "Pixel Singularity",
+        "desc": "A pixel collapses into infinite density. Massive speed boost.",
+        "cost": 300,
+        "effect": { "speed": 5 },
+        "era": "pixel-genesis"
+      }
+    ],
+
+    "single-cell": [
+      {
+        "id": "replication-boost-1",
+        "name": "Replication Boost I",
+        "desc": "Cells divide faster. +1% speed.",
+        "cost": 50,
+        "effect": { "speed": 1 },
+        "era": "single-cell"
+      },
+      {
+        "id": "membrane-strength",
+        "name": "Membrane Strength",
+        "desc": "Stronger membranes increase stability. +1 essence per load.",
+        "cost": 60,
+        "effect": { "essencePerLoad": 1 },
+        "era": "single-cell"
+      },
+      {
+        "id": "nutrient-absorption",
+        "name": "Nutrient Absorption",
+        "desc": "Cells absorb nutrients more efficiently.",
+        "cost": 75,
+        "effect": { "speed": 1.5 },
+        "era": "single-cell"
+      },
+      {
+        "id": "mutation-rate",
+        "name": "Mutation Rate",
+        "desc": "Mutations accelerate evolution.",
+        "cost": 100,
+        "effect": { "speed": 2 },
+        "era": "single-cell"
+      },
+      {
+        "id": "cytoplasmic-flow",
+        "name": "Cytoplasmic Flow",
+        "desc": "Internal movement increases efficiency.",
+        "cost": 120,
+        "effect": { "speed": 2.5 },
+        "era": "single-cell"
+      },
+      {
+        "id": "protein-folding",
+        "name": "Protein Folding",
+        "desc": "Better folding increases load rewards.",
+        "cost": 150,
+        "effect": { "essencePerLoad": 2 },
+        "era": "single-cell"
+      },
+      {
+        "id": "enzyme-boost",
+        "name": "Enzyme Boost",
+        "desc": "Catalysts accelerate progress.",
+        "cost": 175,
+        "effect": { "speed": 3 },
+        "era": "single-cell"
+      },
+      {
+        "id": "cell-cooperation",
+        "name": "Cell Cooperation",
+        "desc": "Cells begin working together.",
+        "cost": 200,
+        "effect": { "speed": 3.5 },
+        "era": "single-cell"
+      },
+      {
+        "id": "symbiosis",
+        "name": "Symbiosis",
+        "desc": "Mutual benefit increases load rewards.",
+        "cost": 225,
+        "effect": { "essencePerLoad": 2 },
+        "era": "single-cell"
+      },
+      {
+        "id": "proto-multicellularity",
+        "name": "Proto-Multicellularity",
+        "desc": "Cells begin forming primitive clusters.",
+        "cost": 250,
+        "effect": { "speed": 4 },
+        "era": "single-cell"
+      }
+    ],
+
+    "multicellular": [
+      {
+        "id": "tissue-formation",
+        "name": "Tissue Formation",
+        "desc": "Cells organize into tissues.",
+        "cost": 100,
+        "effect": { "speed": 1 },
+        "era": "multicellular"
+      },
+      {
+        "id": "organ-development",
+        "name": "Organ Development",
+        "desc": "Primitive organs increase efficiency.",
+        "cost": 120,
+        "effect": { "speed": 1.5 },
+        "era": "multicellular"
+      },
+      {
+        "id": "nerve-clusters",
+        "name": "Nerve Clusters",
+        "desc": "Early nervous systems accelerate progress.",
+        "cost": 150,
+        "effect": { "speed": 2 },
+        "era": "multicellular"
+      },
+      {
+        "id": "circulation",
+        "name": "Circulation",
+        "desc": "Transport systems increase load rewards.",
+        "cost": 175,
+        "effect": { "essencePerLoad": 2 },
+        "era": "multicellular"
+      },
+      {
+        "id": "symmetry",
+        "name": "Symmetry",
+        "desc": "Organized body plans increase speed.",
+        "cost": 200,
+        "effect": { "speed": 2.5 },
+        "era": "multicellular"
+      },
+      {
+        "id": "muscle-fibers",
+        "name": "Muscle Fibers",
+        "desc": "Movement increases efficiency.",
+        "cost": 225,
+        "effect": { "speed": 3 },
+        "era": "multicellular"
+      },
+      {
+        "id": "sensory-organs",
+        "name": "Sensory Organs",
+        "desc": "Perception increases load rewards.",
+        "cost": 250,
+        "effect": { "essencePerLoad": 2 },
+        "era": "multicellular"
+      },
+      {
+        "id": "coordination",
+        "name": "Coordination",
+        "desc": "Organ systems synchronize.",
+        "cost": 275,
+        "effect": { "speed": 3.5 },
+        "era": "multicellular"
+      },
+      {
+        "id": "complex-structures",
+        "name": "Complex Structures",
+        "desc": "Advanced body plans emerge.",
+        "cost": 300,
+        "effect": { "speed": 4 },
+        "era": "multicellular"
+      },
+      {
+        "id": "proto-evolutionary",
+        "name": "Proto-Evolutionary Leap",
+        "desc": "Multicellular life prepares for diversification.",
+        "cost": 350,
+        "effect": { "speed": 5 },
+        "era": "multicellular"
+      }
+    ],
+
+    "evolutionary": [
+      {
+        "id": "adaptive-radiation",
+        "name": "Adaptive Radiation",
+        "desc": "Species diversify rapidly.",
+        "cost": 150,
+        "effect": { "speed": 1 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "environmental-pressure",
+        "name": "Environmental Pressure",
+        "desc": "Selection accelerates progress.",
+        "cost": 175,
+        "effect": { "speed": 1.5 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "vertebrate-formation",
+        "name": "Vertebrate Formation",
+        "desc": "Backbones increase efficiency.",
+        "cost": 200,
+        "effect": { "speed": 2 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "limb-development",
+        "name": "Limb Development",
+        "desc": "Movement increases load rewards.",
+        "cost": 225,
+        "effect": { "essencePerLoad": 2 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "warm-blooded",
+        "name": "Warm-Blooded",
+        "desc": "Metabolism increases speed.",
+        "cost": 250,
+        "effect": { "speed": 2.5 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "mammalian-rise",
+        "name": "Mammalian Rise",
+        "desc": "Mammals dominate ecosystems.",
+        "cost": 275,
+        "effect": { "speed": 3 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "primate-evolution",
+        "name": "Primate Evolution",
+        "desc": "Intelligence increases load rewards.",
+        "cost": 300,
+        "effect": { "essencePerLoad": 2 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "tool-instinct",
+        "name": "Tool Instinct",
+        "desc": "Early tool use accelerates progress.",
+        "cost": 325,
+        "effect": { "speed": 3.5 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "proto-language-evo",
+        "name": "Proto-Language",
+        "desc": "Communication increases efficiency.",
+        "cost": 350,
+        "effect": { "speed": 4 },
+        "era": "evolutionary"
+      },
+      {
+        "id": "hominid-emergence",
+        "name": "Hominid Emergence",
+        "desc": "Human ancestors appear.",
+        "cost": 400,
+        "effect": { "speed": 5 },
+        "era": "evolutionary"
+      }
+    ],
+
+    "human-emergence": [
+      {
+        "id": "fire-mastery",
+        "name": "Fire Mastery",
+        "desc": "Fire increases efficiency.",
+        "cost": 200,
+        "effect": { "speed": 1 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "stone-tools",
+        "name": "Stone Tools",
+        "desc": "Tools increase load rewards.",
+        "cost": 225,
+        "effect": { "essencePerLoad": 2 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "tribal-organization",
+        "name": "Tribal Organization",
+        "desc": "Groups increase speed.",
+        "cost": 250,
+        "effect": { "speed": 1.5 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "proto-language-human",
+        "name": "Proto-Language",
+        "desc": "Communication accelerates progress.",
+        "cost": 275,
+        "effect": { "speed": 2 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "hunting-strategy",
+        "name": "Hunting Strategy",
+        "desc": "Coordinated hunts increase rewards.",
+        "cost": 300,
+        "effect": { "essencePerLoad": 2 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "early-art",
+        "name": "Early Art",
+        "desc": "Creativity increases speed.",
+        "cost": 325,
+        "effect": { "speed": 2.5 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "rituals",
+        "name": "Rituals",
+        "desc": "Shared meaning increases efficiency.",
+        "cost": 350,
+        "effect": { "speed": 3 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "migration",
+        "name": "Migration",
+        "desc": "Expansion increases load rewards.",
+        "cost": 375,
+        "effect": { "essencePerLoad": 2 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "settlement",
+        "name": "Settlement",
+        "desc": "Permanent homes increase speed.",
+        "cost": 400,
+        "effect": { "speed": 3.5 },
+        "era": "human-emergence"
+      },
+      {
+        "id": "agriculture-birth",
+        "name": "Birth of Agriculture",
+        "desc": "Humanity prepares for the next era.",
+        "cost": 450,
+        "effect": { "speed": 4 },
+        "era": "human-emergence"
+      }
+    ],
+
+    "agricultural": [
+      {
+        "id": "crop-yield",
+        "name": "Crop Yield",
+        "desc": "Better crops increase speed.",
+        "cost": 250,
+        "effect": { "speed": 1 },
+        "era": "agricultural"
+      },
+      {
+        "id": "irrigation",
+        "name": "Irrigation",
+        "desc": "Water systems increase rewards.",
+        "cost": 275,
+        "effect": { "essencePerLoad": 2 },
+        "era": "agricultural"
+      },
+      {
+        "id": "animal-domestication",
+        "name": "Animal Domestication",
+        "desc": "Animals increase efficiency.",
+        "cost": 300,
+        "effect": { "speed": 1.5 },
+        "era": "agricultural"
+      },
+      {
+        "id": "granaries",
+        "name": "Granaries",
+        "desc": "Storage increases load rewards.",
+        "cost": 325,
+        "effect": { "essencePerLoad": 2 },
+        "era": "agricultural"
+      },
+      {
+        "id": "village-growth",
+        "name": "Village Growth",
+        "desc": "Villages increase speed.",
+        "cost": 350,
+        "effect": { "speed": 2 },
+        "era": "agricultural"
+      },
+      {
+        "id": "trade-routes",
+        "name": "Trade Routes",
+        "desc": "Trade increases efficiency.",
+        "cost": 375,
+        "effect": { "speed": 2.5 },
+        "era": "agricultural"
+      },
+      {
+        "id": "bronze-tools",
+        "name": "Bronze Tools",
+        "desc": "Tools increase rewards.",
+        "cost": 400,
+        "effect": { "essencePerLoad": 2 },
+        "era": "agricultural"
+      },
+      {
+        "id": "proto-writing",
+        "name": "Proto-Writing",
+        "desc": "Symbols increase speed.",
+        "cost": 425,
+        "effect": { "speed": 3 },
+        "era": "agricultural"
+      },
+      {
+        "id": "early-religion",
+        "name": "Early Religion",
+        "desc": "Shared belief increases efficiency.",
+        "cost": 450,
+        "effect": { "speed": 3.5 },
+        "era": "agricultural"
+      },
+      {
+        "id": "city-birth",
+        "name": "Birth of Cities",
+        "desc": "Humanity prepares for civilization.",
+        "cost": 500,
+        "effect": { "speed": 4 },
+        "era": "agricultural"
+      }
+    ],
+
+    "civilization": [
+  {
+    "id": "writing-systems",
+    "name": "Writing Systems",
+    "desc": "Writing increases speed.",
+    "cost": 300,
+    "effect": { "speed": 1 },
+    "era": "civilization"
+  },
+  {
+    "id": "architecture",
+    "name": "Architecture",
+    "desc": "Buildings increase rewards.",
+    "cost": 325,
+    "effect": { "essencePerLoad": 2 },
+    "era": "civilization"
+  },
+  {
+    "id": "bureaucracy",
+    "name": "Bureaucracy",
+    "desc": "Governance increases efficiency.",
+    "cost": 350,
+    "effect": { "speed": 1.5 },
+    "era": "civilization"
+  },
+  {
+    "id": "metallurgy",
+    "name": "Metallurgy",
+    "desc": "Metalworking increases load rewards.",
+    "cost": 375,
+    "effect": { "essencePerLoad": 2 },
+    "era": "civilization"
+  },
+  {
+    "id": "currency-invention",
+    "name": "Invention of Currency",
+    "desc": "Trade becomes more efficient.",
+    "cost": 400,
+    "effect": { "speed": 2 },
+    "era": "civilization"
+  },
+  {
+    "id": "philosophy",
+    "name": "Philosophy",
+    "desc": "Ideas increase progress.",
+    "cost": 425,
+    "effect": { "speed": 2.5 },
+    "era": "civilization"
+  },
+  {
+    "id": "roads",
+    "name": "Road Networks",
+    "desc": "Infrastructure increases rewards.",
+    "cost": 450,
+    "effect": { "essencePerLoad": 2 },
+    "era": "civilization"
+  },
+  {
+    "id": "military-organization",
+    "name": "Military Organization",
+    "desc": "Armies increase efficiency.",
+    "cost": 475,
+    "effect": { "speed": 3 },
+    "era": "civilization"
+  },
+  {
+    "id": "education",
+    "name": "Education",
+    "desc": "Knowledge increases progress.",
+    "cost": 500,
+    "effect": { "speed": 3.5 },
+    "era": "civilization"
+  },
+  {
+    "id": "empire-rise",
+    "name": "Rise of Empires",
+    "desc": "Civilization prepares for industrialization.",
+    "cost": 550,
+    "effect": { "speed": 4 },
+    "era": "civilization"
+  }
+],
+
+"industrial": [
+  {
+    "id": "steam-power",
+    "name": "Steam Power",
+    "desc": "Steam engines increase speed.",
+    "cost": 400,
+    "effect": { "speed": 1 },
+    "era": "industrial"
+  },
+  {
+    "id": "factories",
+    "name": "Factories",
+    "desc": "Mass production increases rewards.",
+    "cost": 425,
+    "effect": { "essencePerLoad": 2 },
+    "era": "industrial"
+  },
+  {
+    "id": "railways",
+    "name": "Railways",
+    "desc": "Transport increases efficiency.",
+    "cost": 450,
+    "effect": { "speed": 1.5 },
+    "era": "industrial"
+  },
+  {
+    "id": "electricity",
+    "name": "Electricity",
+    "desc": "Power grids accelerate progress.",
+    "cost": 475,
+    "effect": { "speed": 2 },
+    "era": "industrial"
+  },
+  {
+    "id": "mechanization",
+    "name": "Mechanization",
+    "desc": "Machines increase rewards.",
+    "cost": 500,
+    "effect": { "essencePerLoad": 2 },
+    "era": "industrial"
+  },
+  {
+    "id": "chemistry",
+    "name": "Chemistry",
+    "desc": "Chemical processes increase speed.",
+    "cost": 525,
+    "effect": { "speed": 2.5 },
+    "era": "industrial"
+  },
+  {
+    "id": "steel-production",
+    "name": "Steel Production",
+    "desc": "Stronger materials increase efficiency.",
+    "cost": 550,
+    "effect": { "speed": 3 },
+    "era": "industrial"
+  },
+  {
+    "id": "telegraph",
+    "name": "Telegraph",
+    "desc": "Communication increases rewards.",
+    "cost": 575,
+    "effect": { "essencePerLoad": 2 },
+    "era": "industrial"
+  },
+  {
+    "id": "internal-combustion",
+    "name": "Internal Combustion",
+    "desc": "Engines increase progress.",
+    "cost": 600,
+    "effect": { "speed": 3.5 },
+    "era": "industrial"
+  },
+  {
+    "id": "industrial-revolution",
+    "name": "Industrial Revolution",
+    "desc": "Humanity prepares for the digital age.",
+    "cost": 650,
+    "effect": { "speed": 4 },
+    "era": "industrial"
+  }
+],
+
+"digital": [
+  {
+    "id": "computers",
+    "name": "Computers",
+    "desc": "Computing increases speed.",
+    "cost": 500,
+    "effect": { "speed": 1 },
+    "era": "digital"
+  },
+  {
+    "id": "internet",
+    "name": "Internet",
+    "desc": "Connectivity increases rewards.",
+    "cost": 525,
+    "effect": { "essencePerLoad": 2 },
+    "era": "digital"
+  },
+  {
+    "id": "software",
+    "name": "Software",
+    "desc": "Programs increase efficiency.",
+    "cost": 550,
+    "effect": { "speed": 1.5 },
+    "era": "digital"
+  },
+  {
+    "id": "automation",
+    "name": "Automation",
+    "desc": "Automation accelerates progress.",
+    "cost": 575,
+    "effect": { "speed": 2 },
+    "era": "digital"
+  },
+  {
+    "id": "data-centers",
+    "name": "Data Centers",
+    "desc": "Servers increase rewards.",
+    "cost": 600,
+    "effect": { "essencePerLoad": 2 },
+    "era": "digital"
+  },
+  {
+    "id": "ai-development",
+    "name": "AI Development",
+    "desc": "Artificial intelligence increases speed.",
+    "cost": 625,
+    "effect": { "speed": 2.5 },
+    "era": "digital"
+  },
+  {
+    "id": "cloud-computing",
+    "name": "Cloud Computing",
+    "desc": "Distributed systems increase efficiency.",
+    "cost": 650,
+    "effect": { "speed": 3 },
+    "era": "digital"
+  },
+  {
+    "id": "mobile-devices",
+    "name": "Mobile Devices",
+    "desc": "Ubiquity increases rewards.",
+    "cost": 675,
+    "effect": { "essencePerLoad": 2 },
+    "era": "digital"
+  },
+  {
+    "id": "quantum-computing",
+    "name": "Quantum Computing",
+    "desc": "Quantum states accelerate progress.",
+    "cost": 700,
+    "effect": { "speed": 3.5 },
+    "era": "digital"
+  },
+  {
+    "id": "digital-singularity",
+    "name": "Digital Singularity",
+    "desc": "Humanity prepares for space expansion.",
+    "cost": 750,
+    "effect": { "speed": 4 },
+    "era": "digital"
+  }
+],
+
+"space": [
+  {
+    "id": "rocketry",
+    "name": "Rocketry",
+    "desc": "Rockets increase speed.",
+    "cost": 600,
+    "effect": { "speed": 1 },
+    "era": "space"
+  },
+  {
+    "id": "satellites",
+    "name": "Satellites",
+    "desc": "Orbit increases rewards.",
+    "cost": 625,
+    "effect": { "essencePerLoad": 2 },
+    "era": "space"
+  },
+  {
+    "id": "space-stations",
+    "name": "Space Stations",
+    "desc": "Habitats increase efficiency.",
+    "cost": 650,
+    "effect": { "speed": 1.5 },
+    "era": "space"
+  },
+  {
+    "id": "terraforming",
+    "name": "Terraforming",
+    "desc": "Planet shaping increases progress.",
+    "cost": 675,
+    "effect": { "speed": 2 },
+    "era": "space"
+  },
+  {
+    "id": "fusion-reactors",
+    "name": "Fusion Reactors",
+    "desc": "Energy increases rewards.",
+    "cost": 700,
+    "effect": { "essencePerLoad": 2 },
+    "era": "space"
+  },
+  {
+    "id": "interstellar-travel",
+    "name": "Interstellar Travel",
+    "desc": "Travel increases speed.",
+    "cost": 725,
+    "effect": { "speed": 2.5 },
+    "era": "space"
+  },
+  {
+    "id": "colonies",
+    "name": "Colonies",
+    "desc": "Colonization increases efficiency.",
+    "cost": 750,
+    "effect": { "speed": 3 },
+    "era": "space"
+  },
+  {
+    "id": "megastructures",
+    "name": "Megastructures",
+    "desc": "Massive engineering increases rewards.",
+    "cost": 775,
+    "effect": { "essencePerLoad": 2 },
+    "era": "space"
+  },
+  {
+    "id": "galactic-mapping",
+    "name": "Galactic Mapping",
+    "desc": "Knowledge increases progress.",
+    "cost": 800,
+    "effect": { "speed": 3.5 },
+    "era": "space"
+  },
+  {
+    "id": "cosmic-expansion",
+    "name": "Cosmic Expansion",
+    "desc": "Humanity prepares for post-human evolution.",
+    "cost": 850,
+    "effect": { "speed": 4 },
+    "era": "space"
+  }
+],
+
+"post-human": [
+  {
+    "id": "synthetic-minds",
+    "name": "Synthetic Minds",
+    "desc": "Synthetic cognition increases speed.",
+    "cost": 700,
+    "effect": { "speed": 1 },
+    "era": "post-human"
+  },
+  {
+    "id": "nanotechnology",
+    "name": "Nanotechnology",
+    "desc": "Nanomachines increase rewards.",
+    "cost": 725,
+    "effect": { "essencePerLoad": 2 },
+    "era": "post-human"
+  },
+  {
+    "id": "genetic-perfection",
+    "name": "Genetic Perfection",
+    "desc": "Genetic mastery increases efficiency.",
+    "cost": 750,
+    "effect": { "speed": 1.5 },
+    "era": "post-human"
+  },
+  {
+    "id": "mind-uploading",
+    "name": "Mind Uploading",
+    "desc": "Digital consciousness increases progress.",
+    "cost": 775,
+    "effect": { "speed": 2 },
+    "era": "post-human"
+  },
+  {
+    "id": "dyson-spheres",
+    "name": "Dyson Spheres",
+    "desc": "Star-scale engineering increases rewards.",
+    "cost": 800,
+    "effect": { "essencePerLoad": 2 },
+    "era": "post-human"
+  },
+  {
+    "id": "reality-editing",
+    "name": "Reality Editing",
+    "desc": "Physics becomes optional.",
+    "cost": 825,
+    "effect": { "speed": 2.5 },
+    "era": "post-human"
+  },
+  {
+    "id": "collective-consciousness",
+    "name": "Collective Consciousness",
+    "desc": "Shared minds increase efficiency.",
+    "cost": 850,
+    "effect": { "speed": 3 },
+    "era": "post-human"
+  },
+  {
+    "id": "dimensional-travel",
+    "name": "Dimensional Travel",
+    "desc": "New dimensions increase rewards.",
+    "cost": 875,
+    "effect": { "essencePerLoad": 2 },
+    "era": "post-human"
+  },
+  {
+    "id": "cosmic-awareness",
+    "name": "Cosmic Awareness",
+    "desc": "Understanding increases progress.",
+    "cost": 900,
+    "effect": { "speed": 3.5 },
+    "era": "post-human"
+  },
+  {
+    "id": "ascension",
+    "name": "Ascension",
+    "desc": "Humanity prepares for metaphysical existence.",
+    "cost": 950,
+    "effect": { "speed": 4 },
+    "era": "post-human"
+  }
+],
+
+"metaphysical": [
+  {
+    "id": "concept-loading",
+    "name": "Concept Loading",
+    "desc": "Ideas increase speed.",
+    "cost": 800,
+    "effect": { "speed": 1 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "universal-constants",
+    "name": "Universal Constants",
+    "desc": "Constants increase rewards.",
+    "cost": 825,
+    "effect": { "essencePerLoad": 2 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "dimension-weaving",
+    "name": "Dimension Weaving",
+    "desc": "Dimensions increase efficiency.",
+    "cost": 850,
+    "effect": { "speed": 1.5 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "reality-synthesis",
+    "name": "Reality Synthesis",
+    "desc": "Reality becomes editable.",
+    "cost": 875,
+    "effect": { "speed": 2 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "existence-harmonics",
+    "name": "Existence Harmonics",
+    "desc": "Existence resonates.",
+    "cost": 900,
+    "effect": { "essencePerLoad": 2 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "omniprocessing",
+    "name": "Omniprocessing",
+    "desc": "Everything loads faster.",
+    "cost": 925,
+    "effect": { "speed": 2.5 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "infinite-recursion",
+    "name": "Infinite Recursion",
+    "desc": "Progress loops accelerate.",
+    "cost": 950,
+    "effect": { "speed": 3 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "universe-weaving",
+    "name": "Universe Weaving",
+    "desc": "Universes increase rewards.",
+    "cost": 975,
+    "effect": { "essencePerLoad": 2 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "cosmic-synthesis",
+    "name": "Cosmic Synthesis",
+    "desc": "Cosmos increases progress.",
+    "cost": 1000,
+    "effect": { "speed": 3.5 },
+    "era": "metaphysical"
+  },
+  {
+    "id": "everything-loader",
+    "name": "Everything Loader",
+    "desc": "You begin loading existence itself.",
+    "cost": 1100,
+    "effect": { "speed": 5 },
+    "era": "metaphysical"
+  }
+]
+
+"meta": [
+  {
+    "id": "echo-speed-1",
+    "name": "Echo Speed I",
+    "desc": "Reality remembers faster. +10% global speed.",
+    "cost": 5,
+    "currency": "echoes",
+    "effect": { "speedMultiplier": 1.10 },
+    "era": "meta"
+  },
+  {
+    "id": "echo-speed-2",
+    "name": "Echo Speed II",
+    "desc": "Echoes strengthen memory. +20% global speed.",
+    "cost": 15,
+    "currency": "echoes",
+    "effect": { "speedMultiplier": 1.20 },
+    "era": "meta"
+  },
+  {
+    "id": "echo-efficiency-1",
+    "name": "Echo Efficiency I",
+    "desc": "Echoes increase load rewards. +10% essence gain.",
+    "cost": 10,
+    "currency": "echoes",
+    "effect": { "essenceMultiplier": 1.10 },
+    "era": "meta"
+  },
+  {
+    "id": "echo-efficiency-2",
+    "name": "Echo Efficiency II",
+    "desc": "Echoes amplify existence. +20% essence gain.",
+    "cost": 20,
+    "currency": "echoes",
+    "effect": { "essenceMultiplier": 1.20 },
+    "era": "meta"
+  },
+  {
+    "id": "parallel-bars-1",
+    "name": "Parallel Bars I",
+    "desc": "Load two bars at once.",
+    "cost": 12,
+    "currency": "echoes",
+    "effect": { "parallelBars": 2 },
+    "era": "meta"
+  },
+  {
+    "id": "parallel-bars-2",
+    "name": "Parallel Bars II",
+    "desc": "Load three bars at once.",
+    "cost": 30,
+    "currency": "echoes",
+    "effect": { "parallelBars": 3 },
+    "era": "meta"
+  },
+  {
+    "id": "era-skip-1",
+    "name": "Era Skip I",
+    "desc": "Start each run one era ahead.",
+    "cost": 20,
+    "currency": "echoes",
+    "effect": { "eraSkip": 1 },
+    "era": "meta"
+  },
+  {
+    "id": "era-skip-2",
+    "name": "Era Skip II",
+    "desc": "Start each run two eras ahead.",
+    "cost": 45,
+    "currency": "echoes",
+    "effect": { "eraSkip": 2 },
+    "era": "meta"
+  },
+  {
+    "id": "bar-evolution-quantum",
+    "name": "Quantum Bar",
+    "desc": "The bar vibrates between realities. +15% global speed.",
+    "cost": 50,
+    "currency": "echoes",
+    "effect": {
+      "barEvolution": "quantum",
+      "speedMultiplier": 1.15
+    },
+    "era": "meta"
+  },
+  {
+    "id": "bar-evolution-fractal",
+    "name": "Fractal Bar",
+    "desc": "The bar becomes infinitely recursive. +25% global speed.",
+    "cost": 100,
+    "currency": "echoes",
+    "effect": {
+      "barEvolution": "fractal",
+      "speedMultiplier": 1.25
+    },
+    "era": "meta"
+  }
+]
