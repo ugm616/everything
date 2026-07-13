@@ -645,18 +645,20 @@
   const mouse = { x: 0, y: 0, inside: false };
 
   function particleRadiusForValue(value) {
-    return 1.1 + Math.log2(value) * 0.45; // tiny, subtle dots
+    // 1–2px core
+    return Math.min(2, 1 + Math.log2(value) * 0.2);
   }
 
   function particleGlowRadiusForValue(value) {
-    return 8 + Math.log2(value) * 4.8; // soft halo that scales with value
+    // around 10px glow, slightly larger at higher values
+    return 9 + Math.log2(value) * 0.35;
   }
 
   function particleColorForValue(value, alpha = 1) {
     const step = Math.log2(value); // 0..5
     const hue = 204 + step * 9;
     const sat = 88;
-    const light = 68 + step * 4.2; // brighter shade for higher value
+    const light = 68 + step * 4.2;
     return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
   }
 
@@ -735,7 +737,6 @@
 
     if (a.value === PARTICLE_MAX_VALUE && b.value === PARTICLE_MAX_VALUE) {
       const ia = particles.indexOf(a);
-      const ib = particles.indexOf(b);
       if (ia >= 0) particles.splice(ia, 1);
       const ib2 = particles.indexOf(b);
       if (ib2 >= 0) particles.splice(ib2, 1);
@@ -757,7 +758,6 @@
     };
 
     const ia = particles.indexOf(a);
-    const ib = particles.indexOf(b);
     if (ia >= 0) particles.splice(ia, 1);
     const ib2 = particles.indexOf(b);
     if (ib2 >= 0) particles.splice(ib2, 1);
@@ -859,11 +859,12 @@
 
     for (const p of particles) {
       const alpha = Math.max(0, Math.min(1, p.fade));
+      const baseOpacity = 0.5 * alpha; // target around 0.5
       const glowR = particleGlowRadiusForValue(p.value);
 
       const glow = particleCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
-      glow.addColorStop(0, particleColorForValue(p.value, 0.20 * alpha));
-      glow.addColorStop(0.45, particleColorForValue(p.value, 0.10 * alpha));
+      glow.addColorStop(0, particleColorForValue(p.value, 0.22 * baseOpacity));
+      glow.addColorStop(0.55, particleColorForValue(p.value, 0.10 * baseOpacity));
       glow.addColorStop(1, particleColorForValue(p.value, 0));
       particleCtx.fillStyle = glow;
       particleCtx.beginPath();
@@ -872,13 +873,13 @@
 
       particleCtx.beginPath();
       particleCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      particleCtx.fillStyle = particleColorForValue(p.value, 0.82 * alpha);
+      particleCtx.fillStyle = particleColorForValue(p.value, 0.95 * baseOpacity);
       particleCtx.fill();
     }
 
     for (const f of mergeFlashBursts) {
       const t = f.age / f.life;
-      const alpha = (1 - t) * 0.45;
+      const alpha = (1 - t) * 0.38;
       const r = f.radius * (0.4 + t);
 
       const grd = particleCtx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
@@ -1476,7 +1477,7 @@
       return;
     }
 
-    const t = nowSec();
+    const t = performance.now() / 1000;
     state.clickTimes = state.clickTimes.filter(ts => (t - ts) <= CLICK_WINDOW_SEC);
     const cps = state.clickTimes.length / CLICK_WINDOW_SEC;
     const levelData = getCurrentComboLevelData();
@@ -1521,7 +1522,7 @@
   function registerClickForCombo() {
     if (state.comboUpgradeLevel <= 0) return;
     if (state.comboCooldownRemaining > 0) return;
-    state.clickTimes.push(nowSec());
+    state.clickTimes.push(performance.now() / 1000);
   }
 
   let lastTs = performance.now();
