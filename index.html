@@ -645,14 +645,18 @@
   const mouse = { x: 0, y: 0, inside: false };
 
   function particleRadiusForValue(value) {
-    return 6 + Math.log2(value) * 3.2;
+    return 1.1 + Math.log2(value) * 0.45; // tiny, subtle dots
+  }
+
+  function particleGlowRadiusForValue(value) {
+    return 8 + Math.log2(value) * 4.8; // soft halo that scales with value
   }
 
   function particleColorForValue(value, alpha = 1) {
     const step = Math.log2(value); // 0..5
-    const hue = 200 + step * 26;
-    const sat = 78;
-    const light = 58 + step * 3;
+    const hue = 204 + step * 9;
+    const sat = 88;
+    const light = 68 + step * 4.2; // brighter shade for higher value
     return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
   }
 
@@ -855,35 +859,31 @@
 
     for (const p of particles) {
       const alpha = Math.max(0, Math.min(1, p.fade));
-      const glowAlpha = alpha * 0.33;
+      const glowR = particleGlowRadiusForValue(p.value);
 
+      const glow = particleCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+      glow.addColorStop(0, particleColorForValue(p.value, 0.20 * alpha));
+      glow.addColorStop(0.45, particleColorForValue(p.value, 0.10 * alpha));
+      glow.addColorStop(1, particleColorForValue(p.value, 0));
+      particleCtx.fillStyle = glow;
       particleCtx.beginPath();
-      particleCtx.arc(p.x, p.y, p.radius * 1.9, 0, Math.PI * 2);
-      particleCtx.fillStyle = particleColorForValue(p.value, glowAlpha);
+      particleCtx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
       particleCtx.fill();
 
       particleCtx.beginPath();
       particleCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-      particleCtx.fillStyle = particleColorForValue(p.value, alpha);
+      particleCtx.fillStyle = particleColorForValue(p.value, 0.82 * alpha);
       particleCtx.fill();
-
-      if (p.value > 1) {
-        particleCtx.fillStyle = `rgba(230, 245, 255, ${0.65 * alpha})`;
-        particleCtx.font = `${Math.max(9, p.radius)}px "Emilys Candy", cursive`;
-        particleCtx.textAlign = "center";
-        particleCtx.textBaseline = "middle";
-        particleCtx.fillText(String(p.value), p.x, p.y + 0.5);
-      }
     }
 
     for (const f of mergeFlashBursts) {
       const t = f.age / f.life;
-      const alpha = (1 - t) * 0.55;
+      const alpha = (1 - t) * 0.45;
       const r = f.radius * (0.4 + t);
 
       const grd = particleCtx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
-      grd.addColorStop(0, `rgba(180, 220, 255, ${alpha})`);
-      grd.addColorStop(1, `rgba(180, 220, 255, 0)`);
+      grd.addColorStop(0, `rgba(185, 225, 255, ${alpha})`);
+      grd.addColorStop(1, `rgba(185, 225, 255, 0)`);
       particleCtx.fillStyle = grd;
       particleCtx.beginPath();
       particleCtx.arc(f.x, f.y, r, 0, Math.PI * 2);
@@ -1525,6 +1525,8 @@
   }
 
   let lastTs = performance.now();
+  let holdAccum = 0;
+  const HOLD_STEP = 1 / 60;
 
   function gameLoop(ts) {
     const dt = Math.max(0, (ts - lastTs) / 1000);
@@ -1535,12 +1537,17 @@
 
     const currentButton = getCurrentButtonLevelData();
     if (!state.milestoneChoicePending && state.isHoldingButton && currentButton && currentButton.hold > 0) {
-      applyProgress(currentButton.hold * dt);
+      holdAccum += dt;
+      while (holdAccum >= HOLD_STEP) {
+        applyProgress(currentButton.hold * HOLD_STEP);
+        holdAccum -= HOLD_STEP;
+      }
+    } else {
+      holdAccum = 0;
     }
 
     updateCombo(dt);
 
-    // hidden particles
     updateParticles(dt);
     updateParticleRespawn(dt);
     drawParticles();
