@@ -7,8 +7,12 @@ Everything Loader
 * Multi-Button - Allowing the player to open up second and third skill tree
 
 **Upgrades**
+* Upgrades will have there own skill trees
 * Single Purchase - Buy once, Higher cost but better skill
 * Multi Purchase - Buy Repeatedly, cheaper cost, not as effective
+* Speed Upgrades - Used to speed up the Loading Bar
+* Power Upgrades - Used to drop more Essence per Loading Bar completion
+* Player will choose on the skill tree "Power" or "Speed".
 
 **Particles**
 * Combine to marge and remove
