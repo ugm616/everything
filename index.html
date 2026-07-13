@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Everything Loader</title>
-
-  <!-- Emilys Candy font -->
   <link href="https://fonts.googleapis.com/css2?family=Emilys+Candy&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      color-scheme: dark;
-    }
+    :root { color-scheme: dark; }
 
     body {
       margin: 0;
       font-family: "Emilys Candy", cursive;
-      background: #05060a;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(59,130,246,0.10), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(168,85,247,0.08), transparent 45%),
+        #05060a;
       color: #e5e7eb;
       display: flex;
       flex-direction: column;
       height: 100vh;
+      transition: filter 120ms linear, background 180ms linear;
+    }
+
+    body.combo-flash {
+      filter: saturate(1.08) brightness(1.03);
     }
 
     header {
@@ -29,6 +33,8 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     .title {
@@ -47,6 +53,7 @@
       display: flex;
       flex: 1;
       overflow: hidden;
+      min-height: 0;
     }
 
     .left {
@@ -57,6 +64,7 @@
       justify-content: center;
       gap: 24px;
       padding: 24px;
+      position: relative;
     }
 
     .right {
@@ -101,9 +109,7 @@
 
     .bar-fill {
       position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
+      left: 0; top: 0; bottom: 0;
       width: 0%;
       border-radius: 999px;
       background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7);
@@ -120,36 +126,70 @@
       text-align: center;
     }
 
+    .game-button,
+    .upgrade button,
+    .prestige-button,
+    .click-progress-button {
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      background: linear-gradient(180deg, #0b1220 0%, #070b14 100%);
+      color: #dbeafe;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.12s ease, border-color 0.12s ease, filter 0.12s ease;
+      box-shadow:
+        0 0 0 1px rgba(59,130,246,0.12),
+        0 0 14px rgba(59,130,246,0.15);
+      letter-spacing: 0.03em;
+    }
+
+    .game-button:hover,
+    .upgrade button:hover,
+    .prestige-button:hover,
+    .click-progress-button:hover {
+      border-color: #60a5fa;
+      box-shadow:
+        0 0 0 1px rgba(96,165,250,0.25),
+        0 0 18px rgba(96,165,250,0.25);
+      filter: brightness(1.04);
+    }
+
+    .game-button:active,
+    .upgrade button:active,
+    .prestige-button:active,
+    .click-progress-button:active {
+      transform: translateY(1px) scale(0.995);
+    }
+
+    .game-button:disabled,
+    .upgrade button:disabled,
+    .prestige-button:disabled,
+    .click-progress-button:disabled {
+      opacity: 0.38;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+      filter: grayscale(0.12);
+      border-color: #374151;
+      color: #9ca3af;
+    }
+
     .click-progress-button {
       margin-top: -8px;
-      font-size: 12px;
-      padding: 6px 14px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      background: #030712;
-      color: #e5e7eb;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(59, 130, 246, 0.18);
-      transition: transform 0.04s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+      padding: 7px 15px;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
     }
 
-    .click-progress-button:hover {
-      border-color: #4b5563;
-      box-shadow: 0 0 14px rgba(59, 130, 246, 0.28);
-    }
-
-    .click-progress-button:active {
-      transform: translateY(1px) scale(0.995);
-    }
-
-    .click-progress-button:disabled {
-      opacity: 0.35;
-      cursor: default;
-      box-shadow: none;
-      transform: none;
+    .click-progress-button.held {
+      border-color: #a78bfa;
+      box-shadow:
+        0 0 0 1px rgba(167,139,250,0.35),
+        0 0 20px rgba(167,139,250,0.35),
+        0 0 34px rgba(59,130,246,0.25);
+      filter: brightness(1.08) saturate(1.08);
     }
 
     .click-progress-info {
@@ -164,6 +204,33 @@
       gap: 2px;
     }
 
+    .combo-panel {
+      width: 80%;
+      max-width: 640px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at top left, #071022 0%, #050913 45%, #03050b 100%);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #bfdbfe;
+      font-size: 12px;
+      box-shadow: 0 0 16px rgba(59,130,246,0.12);
+    }
+
+    .combo-title {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 6px;
+    }
+
+    .combo-line {
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+
+    .combo-line.subtle { color: #94a3b8; }
+
     .lore-box {
       width: 80%;
       max-width: 640px;
@@ -176,11 +243,7 @@
       min-height: 40px;
     }
 
-    .upgrade-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .upgrade-list { display: flex; flex-direction: column; gap: 8px; }
 
     .upgrade {
       border-radius: 8px;
@@ -197,38 +260,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
 
-    .upgrade-name {
-      font-weight: 600;
-      color: #e5e7eb;
-    }
-
-    .upgrade-cost {
-      font-size: 12px;
-      color: #9ca3af;
-    }
-
-    .upgrade-desc {
-      font-size: 12px;
-      color: #9ca3af;
-    }
+    .upgrade-name { font-weight: 600; color: #e5e7eb; }
+    .upgrade-cost { font-size: 12px; color: #9ca3af; }
+    .upgrade-desc { font-size: 12px; color: #9ca3af; }
 
     .upgrade button {
       margin-top: 4px;
       align-self: flex-end;
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #374151;
-      background: #030712;
-      color: #e5e7eb;
-      cursor: pointer;
-    }
-
-    .upgrade button:disabled {
-      opacity: 0.35;
-      cursor: default;
+      padding: 5px 10px;
     }
 
     .prestige-box {
@@ -246,18 +288,19 @@
 
     .prestige-button {
       align-self: flex-start;
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #f97316;
-      background: #111827;
+      padding: 5px 11px;
+      border-color: #f97316;
       color: #fed7aa;
-      cursor: pointer;
+      box-shadow:
+        0 0 0 1px rgba(249,115,22,0.2),
+        0 0 16px rgba(249,115,22,0.2);
     }
 
-    .prestige-button:disabled {
-      opacity: 0.35;
-      cursor: default;
+    .prestige-button:hover {
+      border-color: #fb923c;
+      box-shadow:
+        0 0 0 1px rgba(251,146,60,0.3),
+        0 0 20px rgba(251,146,60,0.3);
     }
 
     footer {
@@ -269,6 +312,26 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-reset-trigger {
+      cursor: pointer;
+      user-select: none;
+      color: #64748b;
+      transition: color .12s ease, text-shadow .12s ease;
+    }
+    .hidden-reset-trigger:hover {
+      color: #93c5fd;
+      text-shadow: 0 0 8px rgba(147,197,253,.3);
+    }
+
+    .save-indicator {
+      font-size: 10px;
+      color: #64748b;
+      min-width: 62px;
+      text-align: right;
     }
   </style>
 </head>
@@ -290,11 +353,9 @@
         <div class="bar-fill" id="bar-fill"></div>
       </div>
     </div>
-    <div class="bar-label" id="bar-label">
-      Loading: primordial pixels…
-    </div>
+    <div class="bar-label" id="bar-label">Loading: primordial pixels…</div>
 
-    <button id="click-progress-button" class="click-progress-button" disabled hidden>
+    <button id="click-progress-button" class="click-progress-button game-button" disabled hidden>
       Inject Progress
     </button>
     <div class="click-progress-info" id="click-progress-info">
@@ -302,9 +363,14 @@
       <div id="click-progress-line2"></div>
     </div>
 
-    <div class="lore-box" id="lore-box">
-      The universe is idle. The bar begins to move.
+    <div class="combo-panel">
+      <div class="combo-title">Button Combo</div>
+      <div class="combo-line" id="combo-line1">Combo Lv.0 · Inactive</div>
+      <div class="combo-line subtle" id="combo-line2">Need 4 clicks in 1s to trigger</div>
+      <div class="combo-line subtle" id="combo-line3">Cooldown: Ready</div>
     </div>
+
+    <div class="lore-box" id="lore-box">The universe is idle. The bar begins to move.</div>
   </section>
 
   <aside class="right">
@@ -316,12 +382,8 @@
     <div>
       <div class="section-title">Prestige · Reboot Reality</div>
       <div class="prestige-box">
-        <div id="prestige-info">
-          Reboot the universe to gain Echoes and permanent meta‑upgrades.
-        </div>
-        <button id="prestige-button" class="prestige-button" disabled>
-          Reboot Reality
-        </button>
+        <div id="prestige-info">Reboot the universe to gain Echoes and permanent meta‑upgrades.</div>
+        <button id="prestige-button" class="prestige-button game-button" disabled>Reboot Reality</button>
       </div>
     </div>
   </aside>
@@ -329,86 +391,67 @@
 
 <footer>
   <div>Progress speed: <span id="speed-display">1.0</span>% / sec</div>
-  <div>v0.3 · Master JSON, eras, prestige hooks.</div>
+  <div class="hidden-reset-trigger" id="hidden-reset-trigger">v0.6 · combo + save system</div>
+  <div class="save-indicator" id="save-indicator">Not saved</div>
 </footer>
 
 <script>
-  // --- Core state ---
+  // ---------- Constants ----------
+  const SAVE_KEY = "everything-loader-save-v1";
+  const AUTOSAVE_MS = 15000;
+  const CLICK_WINDOW_SEC = 1.0;
+  const COMBO_TRIGGER_CPS = 4;
+  const COMBO_MAINTAIN_CPS = 3;
+  const COMBO_BONUS_PER_SECOND = 0.5; // +0.5% progress/sec per combo second sustained
+
   const eraOrder = [
-    "pixel-genesis",
-    "single-cell",
-    "multicellular",
-    "evolutionary",
-    "human-emergence",
-    "agricultural",
-    "civilization",
-    "industrial",
-    "digital",
-    "space",
-    "post-human",
-    "metaphysical"
+    "pixel-genesis","single-cell","multicellular","evolutionary","human-emergence",
+    "agricultural","civilization","industrial","digital","space","post-human","metaphysical"
   ];
 
   const eraDisplayNames = {
-    "pixel-genesis": "Pixel Genesis",
-    "single-cell": "Single-Cell Era",
-    "multicellular": "Multicellular Era",
-    "evolutionary": "Evolutionary Era",
-    "human-emergence": "Human Emergence",
-    "agricultural": "Agricultural Era",
-    "civilization": "Civilization Era",
-    "industrial": "Industrial Era",
-    "digital": "Digital Era",
-    "space": "Space Era",
-    "post-human": "Post-Human Era",
-    "metaphysical": "Metaphysical Era"
+    "pixel-genesis":"Pixel Genesis","single-cell":"Single-Cell Era","multicellular":"Multicellular Era",
+    "evolutionary":"Evolutionary Era","human-emergence":"Human Emergence","agricultural":"Agricultural Era",
+    "civilization":"Civilization Era","industrial":"Industrial Era","digital":"Digital Era",
+    "space":"Space Era","post-human":"Post-Human Era","metaphysical":"Metaphysical Era"
   };
 
   const eraLore = {
-    "pixel-genesis": "Pixels flicker into existence.",
-    "single-cell": "Life begins as a quiet ripple.",
-    "multicellular": "Cells learn to cooperate.",
-    "evolutionary": "Forms diversify under unseen pressures.",
-    "human-emergence": "Hands shape tools; minds shape futures.",
-    "agricultural": "Fields and villages anchor time.",
-    "civilization": "Cities rise; stories spread.",
-    "industrial": "Steam and steel accelerate destiny.",
-    "digital": "Information becomes the new oxygen.",
-    "space": "Distance becomes a solvable problem.",
-    "post-human": "Thought and matter blur.",
-    "metaphysical": "Ideas begin to load reality itself."
+    "pixel-genesis":"Pixels flicker into existence.","single-cell":"Life begins as a quiet ripple.",
+    "multicellular":"Cells learn to cooperate.","evolutionary":"Forms diversify under unseen pressures.",
+    "human-emergence":"Hands shape tools; minds shape futures.","agricultural":"Fields and villages anchor time.",
+    "civilization":"Cities rise; stories spread.","industrial":"Steam and steel accelerate destiny.",
+    "digital":"Information becomes the new oxygen.","space":"Distance becomes a solvable problem.",
+    "post-human":"Thought and matter blur.","metaphysical":"Ideas begin to load reality itself."
   };
 
-  // Level table from Button Levels.md (era-gated and cost-gated)
+  // Era+cost gated manual injector
   const buttonLevels = [
-    { level: 1, click: 1, hold: 0, cost: 1, requiredEraIndex: 0 },
-    { level: 2, click: 1, hold: 1, cost: 12, requiredEraIndex: 1 },
-    { level: 3, click: 2, hold: 1, cost: 40, requiredEraIndex: 2 },
-    { level: 4, click: 2, hold: 2, cost: 110, requiredEraIndex: 3 },
-    { level: 5, click: 4, hold: 2, cost: 300, requiredEraIndex: 4 },
-    { level: 6, click: 4, hold: 4, cost: 750, requiredEraIndex: 5 },
-    { level: 7, click: 8, hold: 4, cost: 1800, requiredEraIndex: 6 },
-    { level: 8, click: 8, hold: 8, cost: 4200, requiredEraIndex: 7 },
-    { level: 9, click: 16, hold: 8, cost: 9500, requiredEraIndex: 8 },
-    { level: 10, click: 16, hold: 16, cost: 21000, requiredEraIndex: 9 }
+    { level:1, click:1, hold:0, cost:1, requiredEraIndex:0 },
+    { level:2, click:1, hold:1, cost:12, requiredEraIndex:1 },
+    { level:3, click:2, hold:1, cost:40, requiredEraIndex:2 },
+    { level:4, click:2, hold:2, cost:110, requiredEraIndex:3 },
+    { level:5, click:4, hold:2, cost:300, requiredEraIndex:4 },
+    { level:6, click:4, hold:4, cost:750, requiredEraIndex:5 },
+    { level:7, click:8, hold:4, cost:1800, requiredEraIndex:6 },
+    { level:8, click:8, hold:8, cost:4200, requiredEraIndex:7 },
+    { level:9, click:16, hold:8, cost:9500, requiredEraIndex:8 },
+    { level:10, click:16, hold:16, cost:21000, requiredEraIndex:9 }
   ];
 
-  const state = {
-    progress: 0,
-    speed: 1,
-    essence: 0,
-    loads: 0,
-    echoes: 0,
-    essencePerLoad: 1,
-    currentEra: "pixel-genesis",
-    nextEraAt: 50, // loads needed for next era (example)
-    upgradesByEra: {},   // from master JSON
-    metaUpgrades: [],    // from master JSON
-    purchasedMeta: [],
-    loreIndex: 0,
-    buttonLevel: 0,
-    isHoldingButton: false
-  };
+  // Cost-only combo levels from Combo Levels.md
+  const comboLevels = [
+    { level:1, maxSeconds:10, cooldown:60, cost:100 },
+    { level:2, maxSeconds:20, cooldown:55, cost:200 },
+    { level:3, maxSeconds:30, cooldown:50, cost:300 },
+    { level:4, maxSeconds:40, cooldown:45, cost:600 },
+    { level:5, maxSeconds:50, cooldown:40, cost:900 },
+    { level:6, maxSeconds:60, cooldown:35, cost:1400 },
+    { level:7, maxSeconds:70, cooldown:30, cost:2300 },
+    { level:8, maxSeconds:80, cooldown:20, cost:3800 },
+    { level:9, maxSeconds:90, cooldown:10, cost:6100 },
+    { level:10, maxSeconds:Infinity, cooldown:0, cost:10000 }
+  ];
 
   const loreLines = [
     "Pixels remember the universe before it existed.",
@@ -418,7 +461,41 @@
     "Every idle moment is secretly loading something."
   ];
 
-  // --- DOM refs ---
+  // ---------- State ----------
+  const state = {
+    progress: 0,
+    speed: 1,
+    essence: 0,
+    loads: 0,
+    echoes: 0,
+    essencePerLoad: 1,
+    currentEra: "pixel-genesis",
+    nextEraAt: 50,
+    upgradesByEra: {},
+    metaUpgrades: [],
+    purchasedMeta: [],
+    purchasedUpgradeIds: {},
+    loreIndex: 0,
+
+    buttonLevel: 0,
+    isHoldingButton: false,
+
+    comboUpgradeLevel: 0,
+    comboActive: false,
+    comboSeconds: 0,
+    comboProgressAcc: 0,
+    comboCooldownRemaining: 0,
+
+    clickTimes: [],
+
+    flashIntensity: 0,
+    flashDecayPerSecond: 2.2,
+
+    resetStage: 0,
+    resetStageTimer: 0
+  };
+
+  // ---------- DOM ----------
   const barFillEl = document.getElementById("bar-fill");
   const barLabelEl = document.getElementById("bar-label");
   const loreBoxEl = document.getElementById("lore-box");
@@ -433,67 +510,240 @@
   const clickProgressButtonEl = document.getElementById("click-progress-button");
   const clickProgressLine1El = document.getElementById("click-progress-line1");
   const clickProgressLine2El = document.getElementById("click-progress-line2");
+  const comboLine1El = document.getElementById("combo-line1");
+  const comboLine2El = document.getElementById("combo-line2");
+  const comboLine3El = document.getElementById("combo-line3");
+  const hiddenResetTriggerEl = document.getElementById("hidden-reset-trigger");
+  const saveIndicatorEl = document.getElementById("save-indicator");
 
-  function getCurrentEraIndex() {
-    return eraOrder.indexOf(state.currentEra);
-  }
+  // ---------- Helpers ----------
+  function getCurrentEraIndex() { return eraOrder.indexOf(state.currentEra); }
+  function nowSec() { return performance.now() / 1000; }
 
   function getCurrentButtonLevelData() {
     if (state.buttonLevel <= 0) return null;
     return buttonLevels[state.buttonLevel - 1] || null;
   }
+  function getNextButtonLevelData() { return buttonLevels[state.buttonLevel] || null; }
 
-  function getNextButtonLevelData() {
-    return buttonLevels[state.buttonLevel] || null;
+  function getCurrentComboLevelData() {
+    if (state.comboUpgradeLevel <= 0) return null;
+    return comboLevels[state.comboUpgradeLevel - 1] || null;
+  }
+  function getNextComboLevelData() { return comboLevels[state.comboUpgradeLevel] || null; }
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function triggerClickFlash() {
+    // each click pushes intensity up; sustained combo keeps it vivid
+    state.flashIntensity = clamp(state.flashIntensity + 0.22, 0, 1.8);
+    document.body.classList.add("combo-flash");
   }
 
+  function updateBackgroundVisuals(dt) {
+    state.flashIntensity = Math.max(0, state.flashIntensity - state.flashDecayPerSecond * dt);
+
+    const comboCap = getCurrentComboLevelData()?.maxSeconds;
+    const comboRatio = state.comboActive && comboCap && Number.isFinite(comboCap)
+      ? clamp(state.comboSeconds / comboCap, 0, 1)
+      : state.comboActive
+        ? clamp(state.comboSeconds / 20, 0, 1)
+        : 0;
+
+    const vivid = clamp(state.flashIntensity * 0.55 + comboRatio * 0.65, 0, 1);
+    const blue = Math.round(59 + vivid * 42);
+    const purple = Math.round(168 + vivid * 40);
+    const sat = (1 + vivid * 0.35).toFixed(3);
+    const bright = (1 + vivid * 0.08).toFixed(3);
+
+    document.body.style.background =
+      `radial-gradient(circle at 20% 15%, rgba(${blue},130,246,${0.10 + vivid*0.22}), transparent 45%),
+       radial-gradient(circle at 80% 80%, rgba(${purple},85,247,${0.08 + vivid*0.18}), transparent 45%),
+       #05060a`;
+
+    document.body.style.filter = `saturate(${sat}) brightness(${bright})`;
+
+    if (state.flashIntensity <= 0.02 && !state.comboActive) {
+      document.body.classList.remove("combo-flash");
+    }
+  }
+
+  // ---------- Save/Load ----------
+  function makeSavePayload() {
+    return {
+      version: 1,
+      savedAt: Date.now(),
+      state: {
+        progress: state.progress,
+        speed: state.speed,
+        essence: state.essence,
+        loads: state.loads,
+        echoes: state.echoes,
+        essencePerLoad: state.essencePerLoad,
+        currentEra: state.currentEra,
+        nextEraAt: state.nextEraAt,
+        purchasedMeta: state.purchasedMeta,
+        purchasedUpgradeIds: state.purchasedUpgradeIds,
+        loreIndex: state.loreIndex,
+        buttonLevel: state.buttonLevel,
+        comboUpgradeLevel: state.comboUpgradeLevel
+      }
+    };
+  }
+
+  function applyLoadedState(loaded) {
+    const s = loaded?.state;
+    if (!s || typeof s !== "object") return false;
+
+    state.progress = Number(s.progress) || 0;
+    state.speed = Number(s.speed) || 1;
+    state.essence = Number(s.essence) || 0;
+    state.loads = Number(s.loads) || 0;
+    state.echoes = Number(s.echoes) || 0;
+    state.essencePerLoad = Number(s.essencePerLoad) || 1;
+    state.currentEra = eraOrder.includes(s.currentEra) ? s.currentEra : "pixel-genesis";
+    state.nextEraAt = Number(s.nextEraAt) || 50;
+    state.purchasedMeta = Array.isArray(s.purchasedMeta) ? s.purchasedMeta : [];
+    state.purchasedUpgradeIds = (s.purchasedUpgradeIds && typeof s.purchasedUpgradeIds === "object") ? s.purchasedUpgradeIds : {};
+    state.loreIndex = Number(s.loreIndex) || 0;
+    state.buttonLevel = clamp(Number(s.buttonLevel) || 0, 0, buttonLevels.length);
+    state.comboUpgradeLevel = clamp(Number(s.comboUpgradeLevel) || 0, 0, comboLevels.length);
+
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+    state.isHoldingButton = false;
+    return true;
+  }
+
+  function saveGame(reason = "autosave") {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(makeSavePayload()));
+      saveIndicatorEl.textContent = reason === "autosave" ? "Saved" : `Saved (${reason})`;
+      setTimeout(() => {
+        if (saveIndicatorEl.textContent.startsWith("Saved")) saveIndicatorEl.textContent = "Ready";
+      }, 1200);
+    } catch (err) {
+      console.error("Save failed:", err);
+      saveIndicatorEl.textContent = "Save error";
+    }
+  }
+
+  function loadGame() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      const ok = applyLoadedState(parsed);
+      if (ok) {
+        saveIndicatorEl.textContent = "Loaded";
+        setTimeout(() => (saveIndicatorEl.textContent = "Ready"), 1200);
+      }
+      return ok;
+    } catch (err) {
+      console.error("Load failed:", err);
+      return false;
+    }
+  }
+
+  function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+  }
+
+  function resetRunStateForPrestige() {
+    state.progress = 0;
+    state.essence = 0;
+    state.loads = 0;
+    state.speed = 1;
+    state.essencePerLoad = 1;
+    state.currentEra = "pixel-genesis";
+    state.nextEraAt = 50;
+    state.loreIndex = 0;
+    state.isHoldingButton = false;
+
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+  }
+
+  function fullHardReset() {
+    // full wipe including upgrades and echoes
+    state.progress = 0;
+    state.speed = 1;
+    state.essence = 0;
+    state.loads = 0;
+    state.echoes = 0;
+    state.essencePerLoad = 1;
+    state.currentEra = "pixel-genesis";
+    state.nextEraAt = 50;
+    state.purchasedMeta = [];
+    state.purchasedUpgradeIds = {};
+    state.loreIndex = 0;
+    state.buttonLevel = 0;
+    state.comboUpgradeLevel = 0;
+    state.isHoldingButton = false;
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+    state.flashIntensity = 0;
+    clearSave();
+
+    loreBoxEl.textContent = "Timeline wiped. A new universe begins.";
+    updateStats();
+    updateEraDisplay();
+    renderEraUpgrades();
+    updatePrestigeUI();
+    updateClickProgressUI();
+    updateComboUI();
+    saveIndicatorEl.textContent = "Reset";
+  }
+
+  // ---------- Game ----------
   function applyProgress(amount) {
     if (amount <= 0) return;
     state.progress += amount;
-
-    while (state.progress >= 100) {
-      completeLoadCycle();
-    }
-
+    while (state.progress >= 100) completeLoadCycle();
     barFillEl.style.width = Math.min(state.progress, 100) + "%";
   }
 
-  // --- Master JSON loading ---
-  // Expected structure of upgrades.json:
-  // {
-  //   "eras": {
-  //     "pixel-genesis": [ { ...upgrade }, ... ],
-  //     "human-emergence": [ { ...upgrade }, ... ],
-  //     ...
-  //   },
-  //   "meta": [ { ...prestigeUpgrade }, ... ]
-  // }
   async function loadMasterJSON() {
     try {
       const res = await fetch("upgrades.json");
       const data = await res.json();
-
       state.upgradesByEra = data.eras || {};
       state.metaUpgrades = data.meta || [];
 
-      // Ensure current era upgrades exist
-      if (!state.upgradesByEra[state.currentEra]) {
-        state.upgradesByEra[state.currentEra] = [];
-      }
+      if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
+
+      const hadSave = loadGame();
+
+      // ensure currently displayed era exists
+      if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
 
       renderEraUpgrades();
       updateStats();
       updateEraDisplay();
       updatePrestigeUI();
       updateClickProgressUI();
+      updateComboUI();
+
+      if (!hadSave) saveIndicatorEl.textContent = "Ready";
     } catch (e) {
       console.error("Failed to load upgrades.json", e);
       loreBoxEl.textContent = "The universe hesitates. (upgrades.json not found)";
       updateClickProgressUI();
+      updateComboUI();
     }
   }
 
-  // --- Rendering ---
+  function isUpgradePurchased(id) { return !!state.purchasedUpgradeIds[id]; }
+
   function renderEraUpgrades() {
     upgradeListEl.innerHTML = "";
 
@@ -510,8 +760,19 @@
         : `Maxed at ${currentButtonLevel ? currentButtonLevel.click : 0}%/click and ${currentButtonLevel ? currentButtonLevel.hold : 0}%/sec hold.`
     };
 
+    const currentComboLevel = getCurrentComboLevelData();
+    const nextComboLevel = getNextComboLevelData();
+    const comboUpgrade = {
+      id: "combo-level",
+      name: nextComboLevel ? `Combo Core Lv.${nextComboLevel.level}` : "Combo Core MAX",
+      cost: nextComboLevel ? nextComboLevel.cost : 0,
+      desc: nextComboLevel
+        ? `Raise combo cap to ${nextComboLevel.maxSeconds === Infinity ? "∞" : nextComboLevel.maxSeconds}s and cooldown ${nextComboLevel.cooldown}s.`
+        : `Maxed at ${currentComboLevel ? (currentComboLevel.maxSeconds === Infinity ? "∞" : currentComboLevel.maxSeconds) : 0}s cap and ${currentComboLevel ? currentComboLevel.cooldown : 0}s cooldown.`
+    };
+
     const eraUpgrades = state.upgradesByEra[state.currentEra] || [];
-    const upgrades = [buttonUpgrade, ...eraUpgrades];
+    const upgrades = [buttonUpgrade, comboUpgrade, ...eraUpgrades];
 
     upgrades.forEach(upg => {
       const div = document.createElement("div");
@@ -531,6 +792,7 @@
       desc.className = "upgrade-desc";
 
       const button = document.createElement("button");
+      button.className = "game-button";
 
       if (upg.id === "manual-injector-level") {
         if (!nextButtonLevel) {
@@ -544,53 +806,83 @@
           const canAfford = state.essence >= nextButtonLevel.cost;
 
           cost.textContent = `Cost: ${nextButtonLevel.cost} essence · Requires ${requiredEraName}`;
-
-          if (!eraUnlocked) {
-            desc.textContent = `Locked until ${requiredEraName}. Will upgrade to ${nextButtonLevel.click}%/click, ${nextButtonLevel.hold}%/sec hold.`;
-          } else {
-            desc.textContent = upg.desc;
-          }
+          desc.textContent = eraUnlocked
+            ? upg.desc
+            : `Locked until ${requiredEraName}. Will upgrade to ${nextButtonLevel.click}%/click, ${nextButtonLevel.hold}%/sec hold.`;
 
           button.textContent = "Purchase";
           button.disabled = !(eraUnlocked && canAfford);
 
           button.addEventListener("click", () => {
-            const nowEraIndex = getCurrentEraIndex();
-            if (nowEraIndex < nextButtonLevel.requiredEraIndex) return;
+            if (getCurrentEraIndex() < nextButtonLevel.requiredEraIndex) return;
             if (state.essence < nextButtonLevel.cost) return;
 
             state.essence -= nextButtonLevel.cost;
             state.buttonLevel = nextButtonLevel.level;
-
-            if (state.buttonLevel === 1) {
-              loreBoxEl.textContent = "A manual injector hums to life beneath the bar.";
-            } else {
-              loreBoxEl.textContent = `Manual injector reaches Lv.${state.buttonLevel}.`;
-            }
+            loreBoxEl.textContent = state.buttonLevel === 1
+              ? "A manual injector hums to life beneath the bar."
+              : `Manual injector reaches Lv.${state.buttonLevel}.`;
 
             updateStats();
             updateClickProgressUI();
             renderEraUpgrades();
+            saveGame("upgrade");
+          });
+        }
+      } else if (upg.id === "combo-level") {
+        if (!nextComboLevel) {
+          cost.textContent = "MAX";
+          desc.textContent = upg.desc;
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          const canAfford = state.essence >= nextComboLevel.cost;
+          cost.textContent = `Cost: ${nextComboLevel.cost} essence`;
+          desc.textContent = upg.desc;
+          button.textContent = "Purchase";
+          button.disabled = !canAfford;
+
+          button.addEventListener("click", () => {
+            if (state.essence < nextComboLevel.cost) return;
+            state.essence -= nextComboLevel.cost;
+            state.comboUpgradeLevel = nextComboLevel.level;
+
+            // if currently over new cap (shouldn't happen on upgrade upward), still clamp safely
+            const current = getCurrentComboLevelData();
+            if (current && Number.isFinite(current.maxSeconds)) {
+              state.comboSeconds = Math.min(state.comboSeconds, current.maxSeconds);
+            }
+
+            loreBoxEl.textContent = `Combo Core reaches Lv.${state.comboUpgradeLevel}.`;
+            updateStats();
+            updateComboUI();
+            renderEraUpgrades();
+            saveGame("upgrade");
           });
         }
       } else {
         const upgCost = Number(upg.cost) || 0;
+        const already = isUpgradePurchased(upg.id);
 
         cost.textContent = `Cost: ${upgCost} essence`;
         desc.textContent = upg.desc;
-        button.textContent = "Purchase";
-        button.disabled = state.essence < upgCost;
 
-        button.addEventListener("click", () => {
-          if (state.essence >= upgCost) {
+        if (already) {
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          button.textContent = "Purchase";
+          button.disabled = state.essence < upgCost;
+          button.addEventListener("click", () => {
+            if (state.essence < upgCost || isUpgradePurchased(upg.id)) return;
             state.essence -= upgCost;
             applyUpgradeEffect(upg.effect || {});
-            // simple scaling for repeat purchases
-            upg.cost = Math.max(1, Math.floor(upgCost * 1.8));
+            state.purchasedUpgradeIds[upg.id] = true;
             updateStats();
             renderEraUpgrades();
-          }
-        });
+            saveGame("upgrade");
+          });
+        }
       }
 
       header.appendChild(name);
@@ -603,17 +895,9 @@
   }
 
   function applyUpgradeEffect(effect) {
-    if (effect.speed) {
-      state.speed += effect.speed;
-    }
-    if (effect.essencePerLoad) {
-      state.essencePerLoad += effect.essencePerLoad;
-    }
-    if (effect.layerUnlock) {
-      // could be used to jump eras or unlock special ones
-      // placeholder hook
-      console.log("Layer unlock:", effect.layerUnlock);
-    }
+    if (effect.speed) state.speed += effect.speed;
+    if (effect.essencePerLoad) state.essencePerLoad += effect.essencePerLoad;
+    if (effect.layerUnlock) console.log("Layer unlock:", effect.layerUnlock);
   }
 
   function updateStats() {
@@ -642,15 +926,42 @@
 
     clickProgressButtonEl.hidden = false;
     clickProgressButtonEl.disabled = false;
-
     clickProgressButtonEl.textContent = `Inject +${current.click}%`;
     clickProgressLine1El.textContent = `Manual Injector Lv.${current.level} · ${current.click}%/click · ${current.hold}%/sec hold`;
 
     if (next) {
-      const requiredEraName = eraDisplayNames[eraOrder[next.requiredEraIndex]];
-      clickProgressLine2El.textContent = `Next Lv.${next.level}: ${next.click}%/click, ${next.hold}%/sec hold · ${next.cost} essence · ${requiredEraName}`;
+      const reqName = eraDisplayNames[eraOrder[next.requiredEraIndex]];
+      clickProgressLine2El.textContent = `Next Lv.${next.level}: ${next.click}%/click, ${next.hold}%/sec hold · ${next.cost} essence · ${reqName}`;
     } else {
       clickProgressLine2El.textContent = "Manual Injector maxed.";
+    }
+  }
+
+  function updateComboUI() {
+    const levelData = getCurrentComboLevelData();
+    const level = state.comboUpgradeLevel;
+
+    if (!levelData) {
+      comboLine1El.textContent = "Combo Lv.0 · Locked";
+      comboLine2El.textContent = `Need Combo Core Lv.1 (cost ${comboLevels[0].cost} essence)`;
+      comboLine3El.textContent = "Cooldown: N/A";
+      return;
+    }
+
+    const maxText = Number.isFinite(levelData.maxSeconds) ? `${levelData.maxSeconds}s max` : "∞ max";
+    const cooldownText = `${Math.max(0, state.comboCooldownRemaining).toFixed(1)}s`;
+
+    if (state.comboActive) {
+      const bonus = state.comboSeconds * COMBO_BONUS_PER_SECOND;
+      comboLine1El.textContent = `Combo Lv.${level} · ${state.comboSeconds}s active`;
+      comboLine2El.textContent = `Bonus: +${bonus.toFixed(1)}%/sec · Maintain ${COMBO_MAINTAIN_CPS} clicks/sec`;
+      comboLine3El.textContent = `Cap: ${maxText} · Cooldown on break: ${levelData.cooldown}s`;
+    } else {
+      comboLine1El.textContent = `Combo Lv.${level} · Inactive`;
+      comboLine2El.textContent = `Trigger: ${COMBO_TRIGGER_CPS} clicks in ${CLICK_WINDOW_SEC.toFixed(1)}s`;
+      comboLine3El.textContent = state.comboCooldownRemaining > 0
+        ? `Cooldown: ${cooldownText}`
+        : `Cooldown: Ready · Cap ${maxText}`;
     }
   }
 
@@ -660,15 +971,13 @@
     loreBoxEl.textContent = line;
   }
 
-  // --- Era progression ---
   function checkEraProgress() {
     if (state.loads >= state.nextEraAt) {
-      const currentIndex = eraOrder.indexOf(state.currentEra);
-      const nextEra = eraOrder[currentIndex + 1];
-
+      const idx = eraOrder.indexOf(state.currentEra);
+      const nextEra = eraOrder[idx + 1];
       if (nextEra) {
         state.currentEra = nextEra;
-        state.nextEraAt *= 2; // simple exponential spacing
+        state.nextEraAt *= 2;
         loreBoxEl.textContent = eraLore[nextEra] || "A new layer of reality begins to load.";
         updateEraDisplay();
         renderEraUpgrades();
@@ -677,51 +986,34 @@
     }
   }
 
-  // --- Prestige system ---
   function calculateEchoGain() {
-    // Simple formula: echoes based on loads and highest era reached
     const eraIndex = eraOrder.indexOf(state.currentEra);
     const base = Math.floor(state.loads / 50);
     return Math.max(0, base + eraIndex);
   }
 
-  function canPrestige() {
-    // Example condition: at least 100 loads
-    return state.loads >= 100;
-  }
+  function canPrestige() { return state.loads >= 100; }
 
   function updatePrestigeUI() {
     const gain = calculateEchoGain();
-    prestigeInfoEl.textContent =
-      `Reboot now to gain approximately ${gain} Echoes based on this run.`;
+    prestigeInfoEl.textContent = `Reboot now to gain approximately ${gain} Echoes based on this run.`;
     prestigeButtonEl.disabled = !canPrestige();
   }
 
   function performPrestige() {
     if (!canPrestige()) return;
-
     const gained = calculateEchoGain();
     state.echoes += gained;
+    resetRunStateForPrestige();
 
-    // Reset run state
-    state.progress = 0;
-    state.essence = 0;
-    state.loads = 0;
-    state.speed = 1;
-    state.essencePerLoad = 1;
-    state.currentEra = "pixel-genesis";
-    state.nextEraAt = 50;
-    state.loreIndex = 0;
-    state.isHoldingButton = false;
-
-    loreBoxEl.textContent =
-      `Reality reboots. Echoes remain: ${gained} new memories of the universe.`;
-
+    loreBoxEl.textContent = `Reality reboots. Echoes remain: ${gained} new memories of the universe.`;
     updateStats();
     updateEraDisplay();
     renderEraUpgrades();
     updatePrestigeUI();
     updateClickProgressUI();
+    updateComboUI();
+    saveGame("prestige");
   }
 
   prestigeButtonEl.addEventListener("click", performPrestige);
@@ -737,19 +1029,93 @@
     updatePrestigeUI();
   }
 
+  // ---------- Combo ----------
+  function registerClickAndCheckCombo() {
+    if (state.comboUpgradeLevel <= 0) return;
+
+    const t = nowSec();
+    state.clickTimes.push(t);
+
+    const cutoff = t - CLICK_WINDOW_SEC;
+    while (state.clickTimes.length && state.clickTimes[0] < cutoff) state.clickTimes.shift();
+
+    const cps = state.clickTimes.length;
+
+    if (!state.comboActive && state.comboCooldownRemaining <= 0 && cps >= COMBO_TRIGGER_CPS) {
+      state.comboActive = true;
+      state.comboSeconds = 0;
+      state.comboProgressAcc = 0;
+      loreBoxEl.textContent = "Combo engaged.";
+    }
+  }
+
+  function updateCombo(dt) {
+    if (state.comboUpgradeLevel <= 0) return;
+
+    if (state.comboCooldownRemaining > 0) {
+      state.comboCooldownRemaining = Math.max(0, state.comboCooldownRemaining - dt);
+    }
+
+    const levelData = getCurrentComboLevelData();
+    if (!levelData) return;
+
+    const t = nowSec();
+    const cutoff = t - CLICK_WINDOW_SEC;
+    while (state.clickTimes.length && state.clickTimes[0] < cutoff) state.clickTimes.shift();
+    const cps = state.clickTimes.length;
+
+    if (!state.comboActive) return;
+
+    if (cps < COMBO_MAINTAIN_CPS) {
+      state.comboActive = false;
+      state.comboSeconds = 0;
+      state.comboProgressAcc = 0;
+      state.comboCooldownRemaining = levelData.cooldown;
+      loreBoxEl.textContent = "Combo dropped.";
+      return;
+    }
+
+    state.comboProgressAcc += dt;
+    while (state.comboProgressAcc >= 1) {
+      state.comboProgressAcc -= 1;
+      state.comboSeconds += 1;
+
+      // Cap by combo upgrade max
+      if (Number.isFinite(levelData.maxSeconds) && state.comboSeconds >= levelData.maxSeconds) {
+        state.comboSeconds = levelData.maxSeconds;
+        // force cooldown at cap
+        state.comboActive = false;
+        state.comboProgressAcc = 0;
+        state.comboCooldownRemaining = levelData.cooldown;
+        loreBoxEl.textContent = "Combo cap reached. Cooling down.";
+        break;
+      }
+    }
+
+    const comboBonusPerSec = state.comboSeconds * COMBO_BONUS_PER_SECOND;
+    if (comboBonusPerSec > 0) applyProgress(comboBonusPerSec * dt);
+  }
+
+  // ---------- Input ----------
   function startHold() {
     state.isHoldingButton = true;
+    clickProgressButtonEl.classList.add("held");
   }
 
   function stopHold() {
     state.isHoldingButton = false;
+    clickProgressButtonEl.classList.remove("held");
   }
 
   clickProgressButtonEl.addEventListener("pointerdown", (e) => {
     if (state.buttonLevel <= 0) return;
     e.preventDefault();
     clickProgressButtonEl.setPointerCapture(e.pointerId);
-    applyProgress(getCurrentButtonLevelData().click);
+
+    const data = getCurrentButtonLevelData();
+    applyProgress(data.click);
+    registerClickAndCheckCombo();
+    triggerClickFlash();
     startHold();
   });
 
@@ -762,20 +1128,54 @@
 
   clickProgressButtonEl.addEventListener("pointercancel", stopHold);
   clickProgressButtonEl.addEventListener("pointerleave", stopHold);
-
   window.addEventListener("pointerup", stopHold);
   window.addEventListener("blur", stopHold);
 
-  // --- Main loop ---
+  // Hidden triple-confirm reset
+  hiddenResetTriggerEl.addEventListener("click", () => {
+    if (state.resetStage === 0) {
+      state.resetStage = 1;
+      state.resetStageTimer = 8;
+      loreBoxEl.textContent = "Reset step 1/3: click version text again to continue.";
+      return;
+    }
+    if (state.resetStage === 1) {
+      state.resetStage = 2;
+      state.resetStageTimer = 8;
+      loreBoxEl.textContent = "Reset step 2/3: click version text one final time to ERASE ALL.";
+      return;
+    }
+    if (state.resetStage === 2) {
+      state.resetStage = 0;
+      state.resetStageTimer = 0;
+      fullHardReset();
+      saveGame("reset");
+    }
+  });
+
+  function updateResetStage(dt) {
+    if (state.resetStage <= 0) return;
+    state.resetStageTimer -= dt;
+    if (state.resetStageTimer <= 0) {
+      state.resetStage = 0;
+      state.resetStageTimer = 0;
+      loreBoxEl.textContent = "Reset cancelled (timeout).";
+    }
+  }
+
+  // ---------- Main loop ----------
   function tick(dt) {
     applyProgress(state.speed * dt);
 
     if (state.isHoldingButton && state.buttonLevel > 0) {
       const holdRate = getCurrentButtonLevelData().hold;
-      if (holdRate > 0) {
-        applyProgress(holdRate * dt);
-      }
+      if (holdRate > 0) applyProgress(holdRate * dt);
     }
+
+    updateCombo(dt);
+    updateComboUI();
+    updateBackgroundVisuals(dt);
+    updateResetStage(dt);
 
     barFillEl.style.width = Math.min(state.progress, 100) + "%";
   }
@@ -788,7 +1188,18 @@
     requestAnimationFrame(loop);
   }
 
-  // --- Init ---
+  // ---------- Save hooks ----------
+  setInterval(() => saveGame("autosave"), AUTOSAVE_MS);
+
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") saveGame("hide");
+  });
+
+  window.addEventListener("beforeunload", () => {
+    saveGame("unload");
+  });
+
+  // ---------- Init ----------
   loadMasterJSON();
   requestAnimationFrame(loop);
 </script>
