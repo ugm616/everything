@@ -264,6 +264,66 @@
 
     .upgrade-list { display: flex; flex-direction: column; gap: 8px; }
 
+    .branch-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .branch-tab-btn {
+      padding: 5px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #cbd5e1;
+      cursor: pointer;
+    }
+
+    .branch-tab-btn.active {
+      border-color: #60a5fa;
+      color: #dbeafe;
+      box-shadow: 0 0 0 1px rgba(96,165,250,0.25);
+    }
+
+    .branch-unlock-box {
+      border: 1px dashed #475569;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #020617;
+    }
+
+    .branch-unlock-box button {
+      align-self: flex-start;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid #7c3aed;
+      background: #1e1b4b;
+      color: #e9d5ff;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+    }
+
+    .branch-unlock-box button:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .upgrade-kind-label {
+      font-size: 11px;
+      color: #93c5fd;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
     .upgrade {
       border-radius: 8px;
       border: 1px solid #1f2937;
@@ -446,12 +506,28 @@
     </div>
 
     <div class="lore-box" id="lore-box">The universe is idle. The bar begins to move.</div>
+
+    <div class="combo-panel" id="minigame-panel">
+      <div class="combo-title">Mini-Game</div>
+      <div class="combo-line" id="minigame-line1">Particles</div>
+      <div class="combo-line subtle" id="minigame-line2">Every 5 removed => +1 Essence</div>
+      <div class="combo-line subtle" id="minigame-line3">Hunting unlocks in Evolutionary Era</div>
+    </div>
+
+    <button id="hunting-target-btn" class="game-button" style="position:absolute; display:none; z-index:2;">
+      🦷
+    </button>
   </section>
 
   <aside class="right">
     <div>
       <div class="section-title">Era Upgrades</div>
       <div class="upgrade-list" id="upgrade-list"></div>
+    </div>
+
+    <div>
+      <div class="section-title">Playstyle Skill Tree</div>
+      <div class="upgrade-list" id="style-upgrade-list"></div>
     </div>
 
     <div>
@@ -568,6 +644,8 @@
     "Every idle moment is secretly loading something."
   ];
 
+  let upgradesData = null;
+
   // ---------- State ----------
   const state = {
     progress: 0,
@@ -603,7 +681,23 @@
 
     runSpeedBonus: 0,
     cycleMilestonesClaimed: 0,
-    milestoneChoicePending: false
+    milestoneChoicePending: false,
+    chosenBranchByEra: {},
+    unlockedSecondBranchByEra: {},
+    activeBranchTabByEra: {},
+    particlesRemovedCount: 0,
+    activeMinigame: "particles",
+    huntingTargetVisible: false,
+    huntingTargetX: 50,
+    huntingTargetY: 50,
+    huntingTimer: 0,
+    huntingNextSpawnAtLoads: 20,
+    styleLevels: {
+      click: 0,
+      hold: 0,
+      combo: 0,
+      multi: 0
+    }
   };
 
   // ---------- DOM ----------
@@ -620,6 +714,7 @@
   const speedDisplayEl = document.getElementById("speed-display");
   const eraNameEl = document.getElementById("era-name");
   const upgradeListEl = document.getElementById("upgrade-list");
+  const styleUpgradeListEl = document.getElementById("style-upgrade-list");
   const prestigeButtonEl = document.getElementById("prestige-button");
   const prestigeInfoEl = document.getElementById("prestige-info");
   const clickProgressButtonEl = document.getElementById("click-progress-button");
@@ -631,6 +726,10 @@
   const hiddenResetTriggerEl = document.getElementById("hidden-reset-trigger");
   const saveIndicatorEl = document.getElementById("save-indicator");
   const runBonusDisplayEl = document.getElementById("run-bonus-display");
+  const minigameLine1El = document.getElementById("minigame-line1");
+  const minigameLine2El = document.getElementById("minigame-line2");
+  const minigameLine3El = document.getElementById("minigame-line3");
+  const huntingTargetBtnEl = document.getElementById("hunting-target-btn");
 
   const milestoneOverlayEl = document.getElementById("milestone-overlay");
   const milestoneBodyEl = document.getElementById("milestone-body");
@@ -722,6 +821,20 @@
     document.body.classList.add("combo-flash");
   }
 
+  function onParticlesRemoved(countRemoved) {
+    if (!countRemoved || countRemoved <= 0) return;
+    state.particlesRemovedCount += countRemoved;
+
+    const earned = Math.floor(state.particlesRemovedCount / 5);
+    if (earned > 0) {
+      state.essence += earned;
+      state.particlesRemovedCount = state.particlesRemovedCount % 5;
+      updateStats();
+      renderEraUpgrades();
+      renderStyleUpgrades();
+    }
+  }
+
   function mergeParticles(a, b) {
     const mx = (a.x + b.x) * 0.5;
     const my = (a.y + b.y) * 0.5;
@@ -730,9 +843,8 @@
       const ia = particles.indexOf(a); if (ia >= 0) particles.splice(ia, 1);
       const ib2 = particles.indexOf(b); if (ib2 >= 0) particles.splice(ib2, 1);
 
-      state.essence += 1;
-      updateStats();
-      renderEraUpgrades();
+      onParticlesRemoved(2);
+
       addMergeFlash(mx, my, PARTICLE_MAX_VALUE);
       scheduleParticleRespawn();
       return;
@@ -867,7 +979,96 @@
   function nowSec() { return performance.now() / 1000; }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-  // New schema compatibility helpers
+  function markSavedDirty() {
+    saveIndicatorEl.textContent = "Not saved";
+  }
+
+  // Branch helpers
+  function getEraBranchChoice(eraId) {
+    return state.chosenBranchByEra[eraId] || null;
+  }
+
+  function isSecondBranchUnlocked(eraId) {
+    return !!state.unlockedSecondBranchByEra[eraId];
+  }
+
+  function getActiveBranchTab(eraId) {
+    return state.activeBranchTabByEra[eraId] || getEraBranchChoice(eraId) || "speed";
+  }
+
+  function setActiveBranchTab(eraId, branch) {
+    state.activeBranchTabByEra[eraId] = branch;
+  }
+
+  function isBranchLocked(eraId, branch) {
+    const chosen = getEraBranchChoice(eraId);
+    if (!chosen) return false;
+    if (branch === chosen) return false;
+    return !isSecondBranchUnlocked(eraId);
+  }
+
+  function getUpgradeCurrentCost(upg) {
+    const lvl = getUpgradeLevel(upg.id);
+    if (upg.kind !== "multi") return Number(upg.cost) || 0;
+    const base = Number(upg.cost) || 0;
+    return Math.floor(base * Math.pow(upg.costScaling, lvl));
+  }
+
+  function getEffectiveUpgradeCost(upg) {
+    const base = getUpgradeCurrentCost(upg);
+    const chosen = getEraBranchChoice(upg.era);
+    if (!chosen) return base;
+    const isSecond = upg.branch !== chosen;
+    if (!isSecond) return base;
+    if (!isSecondBranchUnlocked(upg.era)) return Infinity;
+    return Math.ceil(base * (upgradesData?.config?.secondBranchCostMultiplier || 1.5));
+  }
+
+  function getBranchCostInfo(upg) {
+    const base = getUpgradeCurrentCost(upg);
+    const chosen = getEraBranchChoice(upg.era);
+    const multiplier = upgradesData?.config?.secondBranchCostMultiplier || 1.5;
+
+    if (!chosen) return { base, effective: base, isSecondBranch: false, multiplierApplied: 1, locked: false };
+
+    const isSecondBranch = upg.branch !== chosen;
+    if (!isSecondBranch) return { base, effective: base, isSecondBranch: false, multiplierApplied: 1, locked: false };
+
+    if (!isSecondBranchUnlocked(upg.era)) {
+      return { base, effective: Infinity, isSecondBranch: true, multiplierApplied: multiplier, locked: true };
+    }
+
+    return {
+      base,
+      effective: Math.ceil(base * multiplier),
+      isSecondBranch: true,
+      multiplierApplied: multiplier,
+      locked: false
+    };
+  }
+
+  function unlockSecondBranchForEra(eraId) {
+    const unlockCost = upgradesData?.config?.unlockSecondBranchEchoCost || 100;
+    if (isSecondBranchUnlocked(eraId)) return true;
+    if (state.echoes < unlockCost) return false;
+
+    state.echoes -= unlockCost;
+    state.unlockedSecondBranchByEra[eraId] = true;
+    updateStats();
+    renderEraUpgrades();
+    renderStyleUpgrades();
+    markSavedDirty();
+    return true;
+  }
+
+  function markEraBranchChosen(eraId, branch) {
+    if (!state.chosenBranchByEra[eraId]) {
+      state.chosenBranchByEra[eraId] = branch;
+      if (!state.activeBranchTabByEra[eraId]) state.activeBranchTabByEra[eraId] = branch;
+    }
+  }
+
+  // Schema compatibility helpers
   function normalizeUpgrade(upg, indexInEra, eraId) {
     const kind = upg.kind || "single";
     const branch = upg.branch || (indexInEra % 2 === 0 ? "speed" : "power");
@@ -901,32 +1102,23 @@
     return reqs.every(reqId => getUpgradeLevel(reqId) > 0);
   }
 
-  function getUpgradeCurrentCost(upg) {
-    const lvl = getUpgradeLevel(upg.id);
-    if (upg.kind !== "multi") return Number(upg.cost) || 0;
-    const base = Number(upg.cost) || 0;
-    return Math.floor(base * Math.pow(upg.costScaling, lvl));
-  }
-
   function isUpgradeMaxed(upg) {
     const lvl = getUpgradeLevel(upg.id);
     return Number.isFinite(upg.maxLevel) && lvl >= upg.maxLevel;
   }
 
-function getUpgradeNameById(id) {
-  for (const eraId of Object.keys(state.upgradesByEra || {})) {
-    const list = state.upgradesByEra[eraId] || [];
-    for (let i = 0; i < list.length; i++) {
-      const n = normalizeUpgrade(list[i], i, eraId);
-      if (n.id === id) return n.name || id;
+  function getUpgradeNameById(id) {
+    for (const eraId of Object.keys(state.upgradesByEra || {})) {
+      const list = state.upgradesByEra[eraId] || [];
+      for (let i = 0; i < list.length; i++) {
+        const n = normalizeUpgrade(list[i], i, eraId);
+        if (n.id === id) return n.name || id;
+      }
     }
+    if (id === "manual-injector-level") return "Manual Injector";
+    if (id === "combo-level") return "Combo Core";
+    return id;
   }
-
-  // also include special upgrades if referenced
-  if (id === "manual-injector-level") return "Manual Injector";
-  if (id === "combo-level") return "Combo Core";
-  return id;
-}
 
   function getCurrentButtonLevelData() {
     if (state.buttonLevel <= 0) return null;
@@ -945,8 +1137,28 @@ function getUpgradeNameById(id) {
   function getHoldSpeedPerSecond() {
     if (state.milestoneChoicePending || !state.isHoldingButton) return 0;
     const currentButton = getCurrentButtonLevelData();
-    return currentButton ? currentButton.hold : 0;
+    return currentButton ? (currentButton.hold * getHoldStyleMultiplier()) : 0;
   }
+
+  // Style tree
+  const styleTreeDefs = {
+    click: { name: "Click Button", baseCost: 20, scaling: 1.35, max: 25, desc: "+10% manual click power per level" },
+    hold: { name: "Hold Button", baseCost: 24, scaling: 1.35, max: 25, desc: "+10% hold power per level" },
+    combo: { name: "Combi-Button", baseCost: 30, scaling: 1.4, max: 25, desc: "+8% combo bonus gain per level" },
+    multi: { name: "Multi-Button", baseCost: 40, scaling: 1.45, max: 10, desc: "Future tree expansion multiplier scaffold" }
+  };
+
+  function getStyleLevel(key) { return state.styleLevels?.[key] || 0; }
+  function getStyleUpgradeCost(key) {
+    const def = styleTreeDefs[key];
+    const lvl = getStyleLevel(key);
+    return Math.floor(def.baseCost * Math.pow(def.scaling, lvl));
+  }
+
+  function getClickStyleMultiplier() { return 1 + getStyleLevel("click") * 0.10; }
+  function getHoldStyleMultiplier() { return 1 + getStyleLevel("hold") * 0.10; }
+  function getComboStyleMultiplier() { return 1 + getStyleLevel("combo") * 0.08; }
+  function getMultiStyleMultiplier() { return 1 + getStyleLevel("multi") * 0.05; }
 
   function getNextCycleMilestoneAt() {
     return (state.cycleMilestonesClaimed + 1) * CYCLE_MILESTONE_STEP;
@@ -986,24 +1198,11 @@ function getUpgradeNameById(id) {
   // ---------- Save/Load ----------
   function makeSavePayload() {
     return {
-      version: 3,
+      version: 4,
       savedAt: Date.now(),
       state: {
-        progress: state.progress,
-        speed: state.speed,
-        essence: state.essence,
-        loads: state.loads,
         echoes: state.echoes,
-        essencePerLoad: state.essencePerLoad,
-        currentEra: state.currentEra,
-        nextEraAt: state.nextEraAt,
-        purchasedMeta: state.purchasedMeta,
-        purchasedUpgradeIds: state.purchasedUpgradeIds,
-        loreIndex: state.loreIndex,
-        buttonLevel: state.buttonLevel,
-        comboUpgradeLevel: state.comboUpgradeLevel,
-        runSpeedBonus: state.runSpeedBonus,
-        cycleMilestonesClaimed: state.cycleMilestonesClaimed
+        purchasedMeta: state.purchasedMeta
       }
     };
   }
@@ -1011,31 +1210,8 @@ function getUpgradeNameById(id) {
   function applyLoadedState(loaded) {
     const s = loaded?.state;
     if (!s || typeof s !== "object") return false;
-
-    state.progress = Number(s.progress) || 0;
-    state.speed = Number(s.speed) || 1;
-    state.essence = Number(s.essence) || 0;
-    state.loads = Number(s.loads) || 0;
     state.echoes = Number(s.echoes) || 0;
-    state.essencePerLoad = Number(s.essencePerLoad) || 1;
-    state.currentEra = eraOrder.includes(s.currentEra) ? s.currentEra : "pixel-genesis";
-    state.nextEraAt = Number(s.nextEraAt) || 50;
     state.purchasedMeta = Array.isArray(s.purchasedMeta) ? s.purchasedMeta : [];
-    state.purchasedUpgradeIds = (s.purchasedUpgradeIds && typeof s.purchasedUpgradeIds === "object") ? s.purchasedUpgradeIds : {};
-    state.loreIndex = Number(s.loreIndex) || 0;
-    state.buttonLevel = clamp(Number(s.buttonLevel) || 0, 0, buttonLevels.length);
-    state.comboUpgradeLevel = clamp(Number(s.comboUpgradeLevel) || 0, 0, comboLevels.length);
-
-    state.runSpeedBonus = Number(s.runSpeedBonus) || 0;
-    state.cycleMilestonesClaimed = Math.max(0, Math.floor(Number(s.cycleMilestonesClaimed) || 0));
-
-    state.comboActive = false;
-    state.comboSeconds = 0;
-    state.comboProgressAcc = 0;
-    state.comboCooldownRemaining = 0;
-    state.clickTimes = [];
-    state.isHoldingButton = false;
-    state.milestoneChoicePending = false;
     return true;
   }
 
@@ -1081,8 +1257,15 @@ function getUpgradeNameById(id) {
     state.essencePerLoad = 1;
     state.currentEra = "pixel-genesis";
     state.nextEraAt = 50;
+    state.purchasedUpgradeIds = {};
+    state.chosenBranchByEra = {};
+    state.unlockedSecondBranchByEra = {};
+    state.activeBranchTabByEra = {};
+    state.buttonLevel = 0;
+    state.comboUpgradeLevel = 0;
     state.loreIndex = 0;
     state.isHoldingButton = false;
+    state.styleLevels = { click: 0, hold: 0, combo: 0, multi: 0 };
 
     state.comboActive = false;
     state.comboSeconds = 0;
@@ -1093,6 +1276,10 @@ function getUpgradeNameById(id) {
     state.runSpeedBonus = 0;
     state.cycleMilestonesClaimed = 0;
     state.milestoneChoicePending = false;
+    state.particlesRemovedCount = 0;
+    state.huntingTargetVisible = false;
+    state.huntingTimer = 0;
+    state.huntingNextSpawnAtLoads = 20;
     hideMilestoneChoiceModal();
   }
 
@@ -1107,6 +1294,9 @@ function getUpgradeNameById(id) {
     state.nextEraAt = 50;
     state.purchasedMeta = [];
     state.purchasedUpgradeIds = {};
+    state.chosenBranchByEra = {};
+    state.unlockedSecondBranchByEra = {};
+    state.activeBranchTabByEra = {};
     state.loreIndex = 0;
     state.buttonLevel = 0;
     state.comboUpgradeLevel = 0;
@@ -1117,10 +1307,12 @@ function getUpgradeNameById(id) {
     state.comboCooldownRemaining = 0;
     state.clickTimes = [];
     state.flashIntensity = 0;
+    state.styleLevels = { click: 0, hold: 0, combo: 0, multi: 0 };
 
     state.runSpeedBonus = 0;
     state.cycleMilestonesClaimed = 0;
     state.milestoneChoicePending = false;
+    state.particlesRemovedCount = 0;
     hideMilestoneChoiceModal();
 
     particles.length = 0;
@@ -1134,10 +1326,12 @@ function getUpgradeNameById(id) {
     updateStats();
     updateEraDisplay();
     renderEraUpgrades();
+    renderStyleUpgrades();
     updatePrestigeUI();
     updateClickProgressUI();
     updateComboUI();
     updateRunBonusUI();
+    updateMinigameMode();
     saveIndicatorEl.textContent = "Reset";
   }
 
@@ -1181,6 +1375,7 @@ function getUpgradeNameById(id) {
     updateStats();
     updateRunBonusUI();
     renderEraUpgrades();
+    renderStyleUpgrades();
     saveGame("milestone");
   }
 
@@ -1189,6 +1384,74 @@ function getUpgradeNameById(id) {
     const pendingText = state.milestoneChoicePending ? " · Reward choice pending" : "";
     runBonusDisplayEl.textContent =
       `Run bonus: +${state.runSpeedBonus.toFixed(1)}%/sec · Next milestone: ${nextAt} cycles${pendingText}`;
+  }
+
+  // ---------- Mini-game ----------
+  function getMinigameForEra(eraId) {
+    const idx = eraOrder.indexOf(eraId);
+    if (idx <= 2) return "particles";
+    return "hunting";
+  }
+
+  function updateMinigameMode() {
+    const mode = getMinigameForEra(state.currentEra);
+    state.activeMinigame = mode;
+
+    if (mode !== "hunting") {
+      hideHuntingTarget();
+      state.huntingTargetVisible = false;
+      state.huntingTimer = 0;
+    }
+
+    updateMinigameUI();
+  }
+
+  function updateMinigameUI() {
+    if (state.activeMinigame === "particles") {
+      minigameLine1El.textContent = "Particles";
+      minigameLine2El.textContent = "Every 5 removed => +1 Essence";
+      minigameLine3El.textContent = "Hunting unlocks in Evolutionary Era";
+    } else {
+      minigameLine1El.textContent = "Hunting";
+      minigameLine2El.textContent = "A tooth appears every ~20 cycles";
+      minigameLine3El.textContent = "Click it before it vanishes for +1 Essence";
+    }
+  }
+
+  function hideHuntingTarget() {
+    huntingTargetBtnEl.style.display = "none";
+    state.huntingTargetVisible = false;
+  }
+
+  function spawnHuntingTarget() {
+    const rect = leftPanelEl.getBoundingClientRect();
+    const margin = 40;
+    const x = margin + Math.random() * Math.max(1, rect.width - margin * 2);
+    const y = margin + Math.random() * Math.max(1, rect.height - margin * 2);
+
+    state.huntingTargetX = x;
+    state.huntingTargetY = y;
+    state.huntingTargetVisible = true;
+    state.huntingTimer = 3.0;
+
+    huntingTargetBtnEl.style.left = `${x - 14}px`;
+    huntingTargetBtnEl.style.top = `${y - 14}px`;
+    huntingTargetBtnEl.style.display = "inline-block";
+  }
+
+  function updateHunting(dt) {
+    if (state.activeMinigame !== "hunting") return;
+
+    if (state.huntingTargetVisible) {
+      state.huntingTimer -= dt;
+      if (state.huntingTimer <= 0) hideHuntingTarget();
+      return;
+    }
+
+    if (state.loads >= state.huntingNextSpawnAtLoads) {
+      spawnHuntingTarget();
+      state.huntingNextSpawnAtLoads = state.loads + 20;
+    }
   }
 
   // ---------- Game ----------
@@ -1203,22 +1466,26 @@ function getUpgradeNameById(id) {
     try {
       const res = await fetch("upgrades.json");
       const data = await res.json();
+      upgradesData = data;
       state.upgradesByEra = data.eras || {};
       state.metaUpgrades = data.meta || [];
 
       if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
 
       const hadSave = loadGame();
+      resetRunStateForPrestige();
 
       if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
 
       renderEraUpgrades();
+      renderStyleUpgrades();
       updateStats();
       updateEraDisplay();
       updatePrestigeUI();
       updateClickProgressUI();
       updateComboUI();
       updateRunBonusUI();
+      updateMinigameMode();
 
       if (!hadSave) saveIndicatorEl.textContent = "Ready";
     } catch (e) {
@@ -1228,6 +1495,63 @@ function getUpgradeNameById(id) {
       updateComboUI();
       updateRunBonusUI();
     }
+  }
+
+  function renderStyleUpgrades() {
+    styleUpgradeListEl.innerHTML = "";
+
+    Object.keys(styleTreeDefs).forEach((key) => {
+      const def = styleTreeDefs[key];
+      const lvl = getStyleLevel(key);
+      const maxed = lvl >= def.max;
+      const cost = getStyleUpgradeCost(key);
+
+      const div = document.createElement("div");
+      div.className = "upgrade";
+
+      const header = document.createElement("div");
+      header.className = "upgrade-header";
+
+      const name = document.createElement("div");
+      name.className = "upgrade-name";
+      name.textContent = `${def.name} Lv.${lvl}${maxed ? " (MAX)" : ""}`;
+
+      const costEl = document.createElement("div");
+      costEl.className = "upgrade-cost";
+      costEl.textContent = maxed ? "MAX" : `Cost: ${cost} essence`;
+
+      const desc = document.createElement("div");
+      desc.className = "upgrade-desc";
+      desc.textContent = def.desc;
+
+      const btn = document.createElement("button");
+      btn.className = "game-button";
+      btn.textContent = maxed ? "Maxed" : "Purchase";
+      btn.disabled = maxed || state.essence < cost;
+
+      btn.addEventListener("click", () => {
+        if (maxed) return;
+        const liveCost = getStyleUpgradeCost(key);
+        if (state.essence < liveCost) return;
+
+        state.essence -= liveCost;
+        state.styleLevels[key] = getStyleLevel(key) + 1;
+
+        updateStats();
+        updateClickProgressUI();
+        updateComboUI();
+        renderEraUpgrades();
+        renderStyleUpgrades();
+        saveGame("style");
+      });
+
+      header.appendChild(name);
+      header.appendChild(costEl);
+      div.appendChild(header);
+      div.appendChild(desc);
+      div.appendChild(btn);
+      styleUpgradeListEl.appendChild(div);
+    });
   }
 
   function renderEraUpgrades() {
@@ -1259,11 +1583,71 @@ function getUpgradeNameById(id) {
 
     const eraUpgradesRaw = state.upgradesByEra[state.currentEra] || [];
     const eraUpgrades = eraUpgradesRaw.map((u, i) => normalizeUpgrade(u, i, state.currentEra));
-    const upgrades = [buttonUpgrade, comboUpgrade, ...eraUpgrades];
+
+    const unlockCostCfg = upgradesData?.config?.unlockSecondBranchEchoCost || 100;
+    const chosenBranch = getEraBranchChoice(state.currentEra);
+    const activeBranch = getActiveBranchTab(state.currentEra);
+    const secondBranchUnlocked = isSecondBranchUnlocked(state.currentEra);
+    const otherBranch = activeBranch === "speed" ? "power" : "speed";
+
+    // Branch tabs
+    const tabs = document.createElement("div");
+    tabs.className = "branch-tabs";
+
+    const speedTab = document.createElement("button");
+    speedTab.className = `branch-tab-btn ${activeBranch === "speed" ? "active" : ""}`;
+    speedTab.textContent = "Speed";
+    speedTab.addEventListener("click", () => {
+      setActiveBranchTab(state.currentEra, "speed");
+      renderEraUpgrades();
+    });
+
+    const powerTab = document.createElement("button");
+    powerTab.className = `branch-tab-btn ${activeBranch === "power" ? "active" : ""}`;
+    powerTab.textContent = "Power";
+    powerTab.addEventListener("click", () => {
+      setActiveBranchTab(state.currentEra, "power");
+      renderEraUpgrades();
+    });
+
+    tabs.appendChild(speedTab);
+    tabs.appendChild(powerTab);
+    upgradeListEl.appendChild(tabs);
+
+    // Unlock box
+    if (chosenBranch && !secondBranchUnlocked) {
+      const unlockBox = document.createElement("div");
+      unlockBox.className = "branch-unlock-box";
+
+      const unlockText = document.createElement("div");
+      unlockText.textContent = `Chosen branch: ${chosenBranch.toUpperCase()}. Unlock ${otherBranch.toUpperCase()} for ${unlockCostCfg} Echoes.`;
+
+      const unlockBtn = document.createElement("button");
+      unlockBtn.textContent = `Unlock ${otherBranch.toUpperCase()}`;
+      unlockBtn.disabled = state.echoes < unlockCostCfg;
+      unlockBtn.addEventListener("click", () => {
+        if (unlockSecondBranchForEra(state.currentEra)) {
+          setActiveBranchTab(state.currentEra, otherBranch);
+        }
+      });
+
+      unlockBox.appendChild(unlockText);
+      unlockBox.appendChild(unlockBtn);
+      upgradeListEl.appendChild(unlockBox);
+    }
+
+    const filteredEraUpgrades = eraUpgrades.filter(u => u.branch === activeBranch);
+    const upgrades = [buttonUpgrade, comboUpgrade, ...filteredEraUpgrades];
 
     upgrades.forEach(upg => {
       const div = document.createElement("div");
       div.className = "upgrade";
+
+      const kindLabel = document.createElement("div");
+      kindLabel.className = "upgrade-kind-label";
+      if (upg.kind === "multi") kindLabel.textContent = "Multi Purchase";
+      else if (upg.kind === "single") kindLabel.textContent = "Single Purchase";
+      else kindLabel.textContent = "System";
 
       const header = document.createElement("div");
       header.className = "upgrade-header";
@@ -1351,8 +1735,8 @@ function getUpgradeNameById(id) {
         const unlocked = isUpgradeUnlocked(normalized);
         const level = getUpgradeLevel(normalized.id);
         const maxed = isUpgradeMaxed(normalized);
-        const upgCost = getUpgradeCurrentCost(normalized);
-        const canAfford = state.essence >= upgCost;
+        const upgCost = getBranchCostInfo(normalized).effective;
+        const canAfford = Number.isFinite(upgCost) && state.essence >= upgCost;
         const isSingle = normalized.kind !== "multi";
 
         if (!unlocked) {
@@ -1373,22 +1757,40 @@ function getUpgradeNameById(id) {
           button.textContent = "Maxed";
           button.disabled = true;
         } else {
-          if (normalized.kind === "multi") {
-            cost.textContent = `Cost: ${upgCost} essence · Lv.${level}${Number.isFinite(normalized.maxLevel) ? `/${normalized.maxLevel}` : ""}`;
+          const branchLocked = isBranchLocked(normalized.era, normalized.branch);
+          const chosen = getEraBranchChoice(normalized.era);
+          const isSecondBranch = !!chosen && normalized.branch !== chosen && isSecondBranchUnlocked(normalized.era);
+          const branchMult = upgradesData?.config?.secondBranchCostMultiplier || 1.5;
+
+          if (branchLocked) {
+            cost.textContent = `Locked: choose ${chosen?.toUpperCase() || "a branch"} first, then unlock this branch for ${unlockCostCfg} Echoes`;
+            desc.textContent = normalized.desc;
+            button.textContent = "Locked";
+          } else if (normalized.kind === "multi") {
+            const lvlText = `Lv.${level}${Number.isFinite(normalized.maxLevel) ? `/${normalized.maxLevel}` : ""}`;
+            const secondText = isSecondBranch ? ` · Second branch x${branchMult}` : "";
+            cost.textContent = `Cost: ${upgCost} essence · ${lvlText}${secondText}`;
             desc.textContent = normalized.desc;
             button.textContent = `Purchase +1`;
           } else {
-            cost.textContent = `Cost: ${upgCost} essence`;
+            const secondText = isSecondBranch ? ` · Second branch x${branchMult}` : "";
+            cost.textContent = `Cost: ${upgCost} essence${secondText}`;
             desc.textContent = normalized.desc;
             button.textContent = "Purchase";
           }
 
-          button.disabled = !canAfford;
+          button.disabled = branchLocked || !canAfford || !Number.isFinite(upgCost);
+
           button.addEventListener("click", () => {
             if (!isUpgradeUnlocked(normalized)) return;
             if (isUpgradeMaxed(normalized)) return;
-            const liveCost = getUpgradeCurrentCost(normalized);
+            if (isBranchLocked(normalized.era, normalized.branch)) return;
+
+            const liveCost = getEffectiveUpgradeCost(normalized);
+            if (!Number.isFinite(liveCost)) return;
             if (state.essence < liveCost) return;
+
+            markEraBranchChosen(normalized.era, normalized.branch);
 
             state.essence -= liveCost;
             applyUpgradeEffect(normalized.effect || {});
@@ -1409,6 +1811,7 @@ function getUpgradeNameById(id) {
       header.appendChild(name);
       header.appendChild(cost);
       div.appendChild(header);
+      div.appendChild(kindLabel);
       div.appendChild(desc);
       div.appendChild(button);
       upgradeListEl.appendChild(div);
@@ -1503,6 +1906,7 @@ function getUpgradeNameById(id) {
         updateEraDisplay();
         renderEraUpgrades();
         updateClickProgressUI();
+        updateMinigameMode();
       }
     }
   }
@@ -1578,7 +1982,7 @@ function getUpgradeNameById(id) {
       return;
     }
 
-    const comboBonusPerSec = state.comboSeconds * COMBO_BONUS_PER_SECOND;
+    const comboBonusPerSec = state.comboSeconds * COMBO_BONUS_PER_SECOND * getComboStyleMultiplier();
     const comboGain = comboBonusPerSec * dt;
     state.comboProgressAcc += comboGain;
     if (state.comboProgressAcc > 0) {
@@ -1603,6 +2007,7 @@ function getUpgradeNameById(id) {
     applyProgress(effectiveSpeed * dt);
 
     updateCombo(dt);
+    updateHunting(dt);
 
     updateParticles(dt);
     updateParticleRespawn(dt);
@@ -1613,6 +2018,7 @@ function getUpgradeNameById(id) {
     updatePrestigeUI();
     updateClickProgressUI();
     updateRunBonusUI();
+    updateMinigameMode();
 
     requestAnimationFrame(gameLoop);
   }
@@ -1621,7 +2027,7 @@ function getUpgradeNameById(id) {
   clickProgressButtonEl.addEventListener("click", () => {
     const current = getCurrentButtonLevelData();
     if (!current || state.milestoneChoicePending) return;
-    applyProgress(current.click);
+    applyProgress(current.click * getClickStyleMultiplier());
     registerClickForCombo();
     triggerClickFlash();
   });
@@ -1658,11 +2064,21 @@ function getUpgradeNameById(id) {
   milestoneSpeedBtnEl.addEventListener("click", () => chooseMilestoneReward("speed"));
   milestoneEssenceBtnEl.addEventListener("click", () => chooseMilestoneReward("essence"));
 
+  huntingTargetBtnEl.addEventListener("click", () => {
+    if (state.activeMinigame !== "hunting" || !state.huntingTargetVisible) return;
+    state.essence += 1;
+    loreBoxEl.textContent = "Hunt success: +1 Essence.";
+    hideHuntingTarget();
+    updateStats();
+    renderEraUpgrades();
+    renderStyleUpgrades();
+  });
+
   prestigeButtonEl.addEventListener("click", () => {
     if (!canPrestige() || state.milestoneChoicePending) return;
     const gain = calculateEchoGain();
     state.echoes += gain;
-    loreBoxEl.textContent = `Reality rebooted. You gained ${gain} Echoes.`;
+    loreBoxEl.textContent = `Reality rebooted. You gained ${gain} Echoes. Only Echoes and Meta upgrades persist.`;
     resetRunStateForPrestige();
 
     particles.length = 0;
@@ -1677,6 +2093,7 @@ function getUpgradeNameById(id) {
     updateComboUI();
     updateRunBonusUI();
     renderEraUpgrades();
+    renderStyleUpgrades();
     saveGame("prestige");
   });
 
@@ -1703,6 +2120,7 @@ function getUpgradeNameById(id) {
   loadMasterJSON().then(() => {
     resizeParticleCanvas();
     ensureParticlePopulationInstant();
+    updateMinigameMode();
     lastTs = performance.now();
     requestAnimationFrame(gameLoop);
   });
