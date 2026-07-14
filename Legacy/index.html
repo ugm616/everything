@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Everything Loader</title>
+  <link href="https://fonts.googleapis.com/css2?family=Emilys+Candy&display=swap" rel="stylesheet">
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body {
+      margin: 0;
+      font-family: "Emilys Candy", cursive;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(59,130,246,0.10), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(168,85,247,0.08), transparent 45%),
+        #05060a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      transition: filter 120ms linear, background 180ms linear;
+    }
+
+    body.combo-flash {
+      filter: saturate(1.08) brightness(1.03);
+    }
+
+    header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #111827;
+      background: #02030a;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 16px;
+      color: #f9fafb;
+    }
+
+    .stats {
+      font-size: 13px;
+      color: #d1d5db;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .left {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .left > *:not(#particle-canvas) {
+      position: relative;
+      z-index: 1;
+    }
+
+    .right {
+      flex: 1;
+      border-left: 1px solid #111827;
+      background: #020617;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: #9ca3af;
+      margin-bottom: 4px;
+    }
+
+    .bar-container {
+      width: 80%;
+      max-width: 640px;
+      height: 32px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+      box-shadow:
+        0 0 0 1px #111827,
+        0 0 24px rgba(59, 130, 246, 0.25);
+      padding: 3px;
+    }
+
+    .bar-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background: #020617;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #3b82f6, #a855f7);
+      box-shadow:
+        0 0 12px rgba(34, 197, 94, 0.6),
+        0 0 24px rgba(59, 130, 246, 0.4);
+      transition: width 0.08s linear;
+    }
+
+    .bar-label {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+    }
+
+    .game-button,
+    .upgrade button,
+    .prestige-button,
+    .click-progress-button,
+    .milestone-choice-btn {
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #334155;
+      background: linear-gradient(180deg, #0b1220 0%, #070b14 100%);
+      color: #dbeafe;
+      cursor: pointer;
+      transition: transform 0.05s ease, box-shadow 0.12s ease, border-color 0.12s ease, filter 0.12s ease;
+      box-shadow:
+        0 0 0 1px rgba(59,130,246,0.12),
+        0 0 14px rgba(59,130,246,0.15);
+      letter-spacing: 0.03em;
+    }
+
+    .game-button:hover,
+    .upgrade button:hover,
+    .prestige-button:hover,
+    .click-progress-button:hover,
+    .milestone-choice-btn:hover {
+      border-color: #60a5fa;
+      box-shadow:
+        0 0 0 1px rgba(96,165,250,0.25),
+        0 0 18px rgba(96,165,250,0.25);
+      filter: brightness(1.04);
+    }
+
+    .game-button:active,
+    .upgrade button:active,
+    .prestige-button:active,
+    .click-progress-button:active,
+    .milestone-choice-btn:active {
+      transform: translateY(1px) scale(0.995);
+    }
+
+    .game-button:disabled,
+    .upgrade button:disabled,
+    .prestige-button:disabled,
+    .click-progress-button:disabled,
+    .milestone-choice-btn:disabled {
+      opacity: 0.38;
+      cursor: default;
+      transform: none;
+      box-shadow: none;
+      filter: grayscale(0.12);
+      border-color: #374151;
+      color: #9ca3af;
+    }
+
+    .click-progress-button {
+      margin-top: -8px;
+      padding: 7px 15px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .click-progress-button.held {
+      border-color: #a78bfa;
+      box-shadow:
+        0 0 0 1px rgba(167,139,250,0.35),
+        0 0 20px rgba(167,139,250,0.35),
+        0 0 34px rgba(59,130,246,0.25);
+      filter: brightness(1.08) saturate(1.08);
+    }
+
+    .click-progress-info {
+      margin-top: -16px;
+      width: 80%;
+      max-width: 640px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .combo-panel {
+      width: 80%;
+      max-width: 640px;
+      border: 1px solid #1f2937;
+      background: radial-gradient(circle at top left, #071022 0%, #050913 45%, #03050b 100%);
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #bfdbfe;
+      font-size: 12px;
+      box-shadow: 0 0 16px rgba(59,130,246,0.12);
+    }
+
+    .combo-title {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 6px;
+    }
+
+    .combo-line {
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+
+    .combo-line.subtle { color: #94a3b8; }
+
+    .lore-box {
+      width: 80%;
+      max-width: 640px;
+      border-radius: 12px;
+      border: 1px solid #111827;
+      background: radial-gradient(circle at top left, #020617 0%, #020617 40%, #000 100%);
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #9ca3af;
+      min-height: 40px;
+    }
+
+    .upgrade-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .upgrade {
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      background: #030712;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 13px;
+    }
+
+    .upgrade-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .upgrade-name { font-weight: 600; color: #e5e7eb; }
+    .upgrade-cost { font-size: 12px; color: #9ca3af; }
+    .upgrade-desc { font-size: 12px; color: #9ca3af; }
+
+    .upgrade button {
+      margin-top: 4px;
+      align-self: flex-end;
+      padding: 5px 10px;
+    }
+
+    .prestige-box {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px dashed #4b5563;
+      background: #020617;
+      font-size: 12px;
+      color: #9ca3af;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prestige-button {
+      align-self: flex-start;
+      padding: 5px 11px;
+      border-color: #f97316;
+      color: #fed7aa;
+      box-shadow:
+        0 0 0 1px rgba(249,115,22,0.2),
+        0 0 16px rgba(249,115,22,0.2);
+    }
+
+    .prestige-button:hover {
+      border-color: #fb923c;
+      box-shadow:
+        0 0 0 1px rgba(251,146,60,0.3),
+        0 0 20px rgba(251,146,60,0.3);
+    }
+
+    footer {
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #4b5563;
+      border-top: 1px solid #111827;
+      background: #02030a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-reset-trigger {
+      cursor: pointer;
+      user-select: none;
+      color: #64748b;
+      transition: color .12s ease, text-shadow .12s ease;
+    }
+    .hidden-reset-trigger:hover {
+      color: #93c5fd;
+      text-shadow: 0 0 8px rgba(147,197,253,.3);
+    }
+
+    .save-indicator {
+      font-size: 10px;
+      color: #64748b;
+      min-width: 62px;
+      text-align: right;
+    }
+
+    .run-bonus-display {
+      font-size: 11px;
+      color: #93c5fd;
+    }
+
+    .milestone-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 6, 23, 0.7);
+      z-index: 50;
+      padding: 16px;
+    }
+
+    .milestone-overlay.show { display: flex; }
+
+    .milestone-modal {
+      width: min(560px, 92vw);
+      border-radius: 12px;
+      border: 1px solid #334155;
+      background: radial-gradient(circle at top left, #0b1220 0%, #060a14 55%, #03050b 100%);
+      box-shadow: 0 0 28px rgba(59,130,246,0.28);
+      padding: 14px;
+      color: #dbeafe;
+    }
+
+    .milestone-title {
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+
+    .milestone-body {
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      line-height: 1.35;
+    }
+
+    .milestone-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .milestone-choice-btn {
+      padding: 7px 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="title">Everything Loader</div>
+  <div class="stats">
+    Era: <span id="era-name">Pixel Genesis</span> ·
+    Loads: <span id="loads">0</span> ·
+    Essence: <span id="essence">0</span> ·
+    Echoes: <span id="echoes">0</span>
+  </div>
+</header>
+
+<main>
+  <section class="left" id="left-panel">
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="bar-container">
+      <div class="bar-inner">
+        <div class="bar-fill" id="bar-fill"></div>
+      </div>
+    </div>
+    <div class="bar-label" id="bar-label">Loading: primordial pixels…</div>
+
+    <button id="click-progress-button" class="click-progress-button game-button" disabled hidden>
+      Inject Progress
+    </button>
+    <div class="click-progress-info" id="click-progress-info">
+      <div id="click-progress-line1">Unlock Manual Injector in Era Upgrades.</div>
+      <div id="click-progress-line2"></div>
+    </div>
+
+    <div class="combo-panel">
+      <div class="combo-title">Button Combo</div>
+      <div class="combo-line" id="combo-line1">Combo Lv.0 · Inactive</div>
+      <div class="combo-line subtle" id="combo-line2">Need 4 clicks in 1s to trigger</div>
+      <div class="combo-line subtle" id="combo-line3">Cooldown: Ready</div>
+    </div>
+
+    <div class="lore-box" id="lore-box">The universe is idle. The bar begins to move.</div>
+  </section>
+
+  <aside class="right">
+    <div>
+      <div class="section-title">Era Upgrades</div>
+      <div class="upgrade-list" id="upgrade-list"></div>
+    </div>
+
+    <div>
+      <div class="section-title">Prestige · Reboot Reality</div>
+      <div class="prestige-box">
+        <div id="prestige-info">Reboot the universe to gain Echoes and permanent meta‑upgrades.</div>
+        <button id="prestige-button" class="prestige-button game-button" disabled>Reboot Reality</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <div>Progress speed: <span id="speed-display">1.0</span>% / sec</div>
+  <div class="run-bonus-display" id="run-bonus-display">Run bonus: +0.0%/sec · Next milestone: 10 cycles</div>
+  <div class="hidden-reset-trigger" id="hidden-reset-trigger">v0.7 · cycle milestone choices</div>
+  <div class="save-indicator" id="save-indicator">Not saved</div>
+</footer>
+
+<div class="milestone-overlay" id="milestone-overlay" aria-hidden="true">
+  <div class="milestone-modal">
+    <div class="milestone-title">Cycle Milestone Reached</div>
+    <div class="milestone-body" id="milestone-body">
+      You reached 10 cycles in this reboot. Choose one reward.
+    </div>
+    <div class="milestone-actions">
+      <button id="milestone-speed-btn" class="milestone-choice-btn">Take +0.1% / sec</button>
+      <button id="milestone-essence-btn" class="milestone-choice-btn">Take +1 Essence</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Constants ----------
+  const SAVE_KEY = "everything-loader-save-v1";
+  const AUTOSAVE_MS = 15000;
+  const CLICK_WINDOW_SEC = 1.0;
+  const COMBO_TRIGGER_CPS = 4;
+  const COMBO_MAINTAIN_CPS = 3;
+  const COMBO_BONUS_PER_SECOND = 0.5;
+
+  const CYCLE_MILESTONE_STEP = 10;
+  const CYCLE_REWARD_SPEED = 0.1;
+  const CYCLE_REWARD_ESSENCE = 1;
+
+  // Hidden particle system constants
+  const PARTICLE_MIN_VALUE = 1;
+  const PARTICLE_MAX_VALUE = 32;
+  const PARTICLE_RESPAWN_DELAY = 10;
+  const PARTICLE_INITIAL_COUNT = 26;
+  const PARTICLE_MAX_COUNT = 32;
+  const PARTICLE_FADE_IN_SEC = 1.8;
+  const PARTICLE_REPEL_RADIUS = 92;
+  const PARTICLE_REPEL_STRENGTH = 180;
+  const PARTICLE_BASE_SPEED = 16;
+  const PARTICLE_SPEED_JITTER = 10;
+  const PARTICLE_FRICTION = 0.995;
+  const PARTICLE_BOUNCE = 0.985;
+  const PARTICLE_MERGE_FLASH_BASE = 0.22;
+  const PARTICLE_MERGE_FLASH_SCALE = 0.07;
+
+  const eraOrder = [
+    "pixel-genesis","single-cell","multicellular","evolutionary","human-emergence",
+    "agricultural","civilization","industrial","digital","space","post-human","metaphysical"
+  ];
+
+  const eraDisplayNames = {
+    "pixel-genesis":"Pixel Genesis","single-cell":"Single-Cell Era","multicellular":"Multicellular Era",
+    "evolutionary":"Evolutionary Era","human-emergence":"Human Emergence","agricultural":"Agricultural Era",
+    "civilization":"Civilization Era","industrial":"Industrial Era","digital":"Digital Era",
+    "space":"Space Era","post-human":"Post-Human Era","metaphysical":"Metaphysical Era"
+  };
+
+  const eraLore = {
+    "pixel-genesis":"Pixels flicker into existence.","single-cell":"Life begins as a quiet ripple.",
+    "multicellular":"Cells learn to cooperate.","evolutionary":"Forms diversify under unseen pressures.",
+    "human-emergence":"Hands shape tools; minds shape futures.","agricultural":"Fields and villages anchor time.",
+    "civilization":"Cities rise; stories spread.","industrial":"Steam and steel accelerate destiny.",
+    "digital":"Information becomes the new oxygen.","space":"Distance becomes a solvable problem.",
+    "post-human":"Thought and matter blur.","metaphysical":"Ideas begin to load reality itself."
+  };
+
+  const buttonLevels = [
+    { level:1, click:1, hold:0, cost:1, requiredEraIndex:0 },
+    { level:2, click:1, hold:1, cost:12, requiredEraIndex:1 },
+    { level:3, click:2, hold:1, cost:40, requiredEraIndex:2 },
+    { level:4, click:2, hold:2, cost:110, requiredEraIndex:3 },
+    { level:5, click:4, hold:2, cost:300, requiredEraIndex:4 },
+    { level:6, click:4, hold:4, cost:750, requiredEraIndex:5 },
+    { level:7, click:8, hold:4, cost:1800, requiredEraIndex:6 },
+    { level:8, click:8, hold:8, cost:4200, requiredEraIndex:7 },
+    { level:9, click:16, hold:8, cost:9500, requiredEraIndex:8 },
+    { level:10, click:16, hold:16, cost:21000, requiredEraIndex:9 }
+  ];
+
+  const comboLevels = [
+    { level:1, maxSeconds:10, cooldown:60, cost:100 },
+    { level:2, maxSeconds:20, cooldown:55, cost:200 },
+    { level:3, maxSeconds:30, cooldown:50, cost:300 },
+    { level:4, maxSeconds:40, cooldown:45, cost:600 },
+    { level:5, maxSeconds:50, cooldown:40, cost:900 },
+    { level:6, maxSeconds:60, cooldown:35, cost:1400 },
+    { level:7, maxSeconds:70, cooldown:30, cost:2300 },
+    { level:8, maxSeconds:80, cooldown:20, cost:3800 },
+    { level:9, maxSeconds:90, cooldown:10, cost:6100 },
+    { level:10, maxSeconds:Infinity, cooldown:0, cost:10000 }
+  ];
+
+  const loreLines = [
+    "Pixels remember the universe before it existed.",
+    "Each completed bar is a tiny rehearsal for reality.",
+    "Progress is just patience with a good UI.",
+    "You are watching time become visible.",
+    "Every idle moment is secretly loading something."
+  ];
+
+  // ---------- State ----------
+  const state = {
+    progress: 0,
+    speed: 1,
+    essence: 0,
+    loads: 0,
+    echoes: 0,
+    essencePerLoad: 1,
+    currentEra: "pixel-genesis",
+    nextEraAt: 50,
+    upgradesByEra: {},
+    metaUpgrades: [],
+    purchasedMeta: [],
+    purchasedUpgradeIds: {},
+    loreIndex: 0,
+
+    buttonLevel: 0,
+    isHoldingButton: false,
+
+    comboUpgradeLevel: 0,
+    comboActive: false,
+    comboSeconds: 0,
+    comboProgressAcc: 0,
+    comboCooldownRemaining: 0,
+
+    clickTimes: [],
+
+    flashIntensity: 0,
+    flashDecayPerSecond: 2.2,
+
+    resetStage: 0,
+    resetStageTimer: 0,
+
+    runSpeedBonus: 0,
+    cycleMilestonesClaimed: 0,
+    milestoneChoicePending: false
+  };
+
+  // ---------- DOM ----------
+  const leftPanelEl = document.getElementById("left-panel");
+  const particleCanvasEl = document.getElementById("particle-canvas");
+  const particleCtx = particleCanvasEl.getContext("2d");
+
+  const barFillEl = document.getElementById("bar-fill");
+  const barLabelEl = document.getElementById("bar-label");
+  const loreBoxEl = document.getElementById("lore-box");
+  const loadsEl = document.getElementById("loads");
+  const essenceEl = document.getElementById("essence");
+  const echoesEl = document.getElementById("echoes");
+  const speedDisplayEl = document.getElementById("speed-display");
+  const eraNameEl = document.getElementById("era-name");
+  const upgradeListEl = document.getElementById("upgrade-list");
+  const prestigeButtonEl = document.getElementById("prestige-button");
+  const prestigeInfoEl = document.getElementById("prestige-info");
+  const clickProgressButtonEl = document.getElementById("click-progress-button");
+  const clickProgressLine1El = document.getElementById("click-progress-line1");
+  const clickProgressLine2El = document.getElementById("click-progress-line2");
+  const comboLine1El = document.getElementById("combo-line1");
+  const comboLine2El = document.getElementById("combo-line2");
+  const comboLine3El = document.getElementById("combo-line3");
+  const hiddenResetTriggerEl = document.getElementById("hidden-reset-trigger");
+  const saveIndicatorEl = document.getElementById("save-indicator");
+  const runBonusDisplayEl = document.getElementById("run-bonus-display");
+
+  const milestoneOverlayEl = document.getElementById("milestone-overlay");
+  const milestoneBodyEl = document.getElementById("milestone-body");
+  const milestoneSpeedBtnEl = document.getElementById("milestone-speed-btn");
+  const milestoneEssenceBtnEl = document.getElementById("milestone-essence-btn");
+
+  // ---------- Particle System ----------
+  const particles = [];
+  const mergeFlashBursts = [];
+  let particleIdCounter = 1;
+  let particleRespawnTimer = 0;
+  const mouse = { x: 0, y: 0, inside: false };
+
+  function particleRadiusForValue(value) {
+    // 1–2px core
+    return Math.min(2, 1 + Math.log2(value) * 0.2);
+  }
+
+  function particleGlowRadiusForValue(value) {
+    // around 10px glow, slightly larger at higher values
+    return 9 + Math.log2(value) * 0.35;
+  }
+
+  function particleColorForValue(value, alpha = 1) {
+    const step = Math.log2(value); // 0..5
+    const hue = 204 + step * 9;
+    const sat = 88;
+    const light = 68 + step * 4.2;
+    return `hsla(${hue}, ${sat}%, ${light}%, ${alpha})`;
+  }
+
+  function randomParticleVelocity() {
+    const angle = Math.random() * Math.PI * 2;
+    const mag = PARTICLE_BASE_SPEED + Math.random() * PARTICLE_SPEED_JITTER;
+    return { vx: Math.cos(angle) * mag, vy: Math.sin(angle) * mag };
+  }
+
+  function resizeParticleCanvas() {
+    const rect = leftPanelEl.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    particleCanvasEl.width = Math.max(1, Math.floor(rect.width * dpr));
+    particleCanvasEl.height = Math.max(1, Math.floor(rect.height * dpr));
+    particleCanvasEl.style.width = `${rect.width}px`;
+    particleCanvasEl.style.height = `${rect.height}px`;
+    particleCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function spawnParticle(value = 1, fadeIn = true) {
+    const rect = leftPanelEl.getBoundingClientRect();
+    const radius = particleRadiusForValue(value);
+
+    const x = radius + Math.random() * Math.max(1, rect.width - radius * 2);
+    const y = radius + Math.random() * Math.max(1, rect.height - radius * 2);
+    const vel = randomParticleVelocity();
+
+    particles.push({
+      id: particleIdCounter++,
+      x, y,
+      vx: vel.vx,
+      vy: vel.vy,
+      value,
+      radius,
+      fade: fadeIn ? 0 : 1,
+      fadeInRate: 1 / PARTICLE_FADE_IN_SEC,
+      mergeCooldown: 0
+    });
+  }
+
+  function ensureParticlePopulationInstant() {
+    while (particles.length < PARTICLE_INITIAL_COUNT) {
+      spawnParticle(PARTICLE_MIN_VALUE, false);
+    }
+  }
+
+  function scheduleParticleRespawn() {
+    particleRespawnTimer = Math.max(particleRespawnTimer, PARTICLE_RESPAWN_DELAY);
+  }
+
+  function updateParticleRespawn(dt) {
+    if (particleRespawnTimer > 0) {
+      particleRespawnTimer = Math.max(0, particleRespawnTimer - dt);
+      return;
+    }
+    if (particles.length < PARTICLE_INITIAL_COUNT || particles.length < PARTICLE_MAX_COUNT) {
+      if (Math.random() < dt * 1.35) spawnParticle(1, true);
+    }
+  }
+
+  function addMergeFlash(x, y, value) {
+    const scale = Math.log2(value); // 1..5
+    mergeFlashBursts.push({
+      x, y,
+      age: 0,
+      life: 0.35 + scale * 0.04,
+      radius: 12 + scale * 8
+    });
+    state.flashIntensity = clamp(state.flashIntensity + PARTICLE_MERGE_FLASH_BASE + scale * PARTICLE_MERGE_FLASH_SCALE, 0, 2.2);
+    document.body.classList.add("combo-flash");
+  }
+
+  function mergeParticles(a, b) {
+    const mx = (a.x + b.x) * 0.5;
+    const my = (a.y + b.y) * 0.5;
+
+    if (a.value === PARTICLE_MAX_VALUE && b.value === PARTICLE_MAX_VALUE) {
+      const ia = particles.indexOf(a);
+      if (ia >= 0) particles.splice(ia, 1);
+      const ib2 = particles.indexOf(b);
+      if (ib2 >= 0) particles.splice(ib2, 1);
+
+      state.essence += 1;
+      updateStats();
+      renderEraUpgrades();
+      addMergeFlash(mx, my, PARTICLE_MAX_VALUE);
+      scheduleParticleRespawn();
+      return;
+    }
+
+    const newValue = a.value * 2;
+    if (newValue > PARTICLE_MAX_VALUE) return;
+
+    const vel = {
+      vx: (a.vx + b.vx) * 0.5,
+      vy: (a.vy + b.vy) * 0.5
+    };
+
+    const ia = particles.indexOf(a);
+    if (ia >= 0) particles.splice(ia, 1);
+    const ib2 = particles.indexOf(b);
+    if (ib2 >= 0) particles.splice(ib2, 1);
+
+    particles.push({
+      id: particleIdCounter++,
+      x: mx,
+      y: my,
+      vx: vel.vx,
+      vy: vel.vy,
+      value: newValue,
+      radius: particleRadiusForValue(newValue),
+      fade: 1,
+      fadeInRate: 1 / PARTICLE_FADE_IN_SEC,
+      mergeCooldown: 0.12
+    });
+
+    addMergeFlash(mx, my, newValue);
+    scheduleParticleRespawn();
+  }
+
+  function updateParticles(dt) {
+    const rect = leftPanelEl.getBoundingClientRect();
+
+    for (const p of particles) {
+      if (p.fade < 1) p.fade = Math.min(1, p.fade + p.fadeInRate * dt);
+      if (p.mergeCooldown > 0) p.mergeCooldown = Math.max(0, p.mergeCooldown - dt);
+
+      if (mouse.inside) {
+        const dx = p.x - mouse.x;
+        const dy = p.y - mouse.y;
+        const distSq = dx * dx + dy * dy;
+        const radiusSq = PARTICLE_REPEL_RADIUS * PARTICLE_REPEL_RADIUS;
+        if (distSq > 0.0001 && distSq < radiusSq) {
+          const dist = Math.sqrt(distSq);
+          const nX = dx / dist;
+          const nY = dy / dist;
+          const strength = (1 - dist / PARTICLE_REPEL_RADIUS) * PARTICLE_REPEL_STRENGTH;
+          p.vx += nX * strength * dt;
+          p.vy += nY * strength * dt;
+        }
+      }
+
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+
+      p.vx *= Math.pow(PARTICLE_FRICTION, dt * 60);
+      p.vy *= Math.pow(PARTICLE_FRICTION, dt * 60);
+
+      const r = p.radius;
+      if (p.x - r < 0) {
+        p.x = r;
+        p.vx = Math.abs(p.vx) * PARTICLE_BOUNCE;
+      } else if (p.x + r > rect.width) {
+        p.x = rect.width - r;
+        p.vx = -Math.abs(p.vx) * PARTICLE_BOUNCE;
+      }
+
+      if (p.y - r < 0) {
+        p.y = r;
+        p.vy = Math.abs(p.vy) * PARTICLE_BOUNCE;
+      } else if (p.y + r > rect.height) {
+        p.y = rect.height - r;
+        p.vy = -Math.abs(p.vy) * PARTICLE_BOUNCE;
+      }
+    }
+
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const a = particles[i];
+        const b = particles[j];
+        if (!a || !b) continue;
+        if (a.value !== b.value) continue;
+        if (a.mergeCooldown > 0 || b.mergeCooldown > 0) continue;
+
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const minDist = a.radius + b.radius;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq <= minDist * minDist) {
+          mergeParticles(a, b);
+          i = -1;
+          break;
+        }
+      }
+    }
+
+    for (let i = mergeFlashBursts.length - 1; i >= 0; i--) {
+      const f = mergeFlashBursts[i];
+      f.age += dt;
+      if (f.age >= f.life) mergeFlashBursts.splice(i, 1);
+    }
+  }
+
+  function drawParticles() {
+    const rect = leftPanelEl.getBoundingClientRect();
+    particleCtx.clearRect(0, 0, rect.width, rect.height);
+
+    for (const p of particles) {
+      const alpha = Math.max(0, Math.min(1, p.fade));
+      const baseOpacity = 0.5 * alpha; // target around 0.5
+      const glowR = particleGlowRadiusForValue(p.value);
+
+      const glow = particleCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
+      glow.addColorStop(0, particleColorForValue(p.value, 0.22 * baseOpacity));
+      glow.addColorStop(0.55, particleColorForValue(p.value, 0.10 * baseOpacity));
+      glow.addColorStop(1, particleColorForValue(p.value, 0));
+      particleCtx.fillStyle = glow;
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, glowR, 0, Math.PI * 2);
+      particleCtx.fill();
+
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      particleCtx.fillStyle = particleColorForValue(p.value, 0.95 * baseOpacity);
+      particleCtx.fill();
+    }
+
+    for (const f of mergeFlashBursts) {
+      const t = f.age / f.life;
+      const alpha = (1 - t) * 0.38;
+      const r = f.radius * (0.4 + t);
+
+      const grd = particleCtx.createRadialGradient(f.x, f.y, 0, f.x, f.y, r);
+      grd.addColorStop(0, `rgba(185, 225, 255, ${alpha})`);
+      grd.addColorStop(1, `rgba(185, 225, 255, 0)`);
+      particleCtx.fillStyle = grd;
+      particleCtx.beginPath();
+      particleCtx.arc(f.x, f.y, r, 0, Math.PI * 2);
+      particleCtx.fill();
+    }
+  }
+
+  // ---------- Helpers ----------
+  function getCurrentEraIndex() { return eraOrder.indexOf(state.currentEra); }
+  function nowSec() { return performance.now() / 1000; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function getCurrentButtonLevelData() {
+    if (state.buttonLevel <= 0) return null;
+    return buttonLevels[state.buttonLevel - 1] || null;
+  }
+  function getNextButtonLevelData() { return buttonLevels[state.buttonLevel] || null; }
+
+  function getCurrentComboLevelData() {
+    if (state.comboUpgradeLevel <= 0) return null;
+    return comboLevels[state.comboUpgradeLevel - 1] || null;
+  }
+  function getNextComboLevelData() { return comboLevels[state.comboUpgradeLevel] || null; }
+
+  function getTotalSpeedPerSecond() {
+    return state.speed + state.runSpeedBonus;
+  }
+
+  function getHoldSpeedPerSecond() {
+    if (state.milestoneChoicePending || !state.isHoldingButton) return 0;
+    const currentButton = getCurrentButtonLevelData();
+    return currentButton ? currentButton.hold : 0;
+  }
+
+  function getNextCycleMilestoneAt() {
+    return (state.cycleMilestonesClaimed + 1) * CYCLE_MILESTONE_STEP;
+  }
+
+  function triggerClickFlash() {
+    state.flashIntensity = clamp(state.flashIntensity + 0.22, 0, 1.8);
+    document.body.classList.add("combo-flash");
+  }
+
+  function updateBackgroundVisuals(dt) {
+    state.flashIntensity = Math.max(0, state.flashIntensity - state.flashDecayPerSecond * dt);
+
+    const comboCap = getCurrentComboLevelData()?.maxSeconds;
+    const comboRatio = state.comboActive && comboCap && Number.isFinite(comboCap)
+      ? clamp(state.comboSeconds / comboCap, 0, 1)
+      : state.comboActive
+        ? clamp(state.comboSeconds / 20, 0, 1)
+        : 0;
+
+    const vivid = clamp(state.flashIntensity * 0.55 + comboRatio * 0.65, 0, 1);
+    const blue = Math.round(59 + vivid * 42);
+    const purple = Math.round(168 + vivid * 40);
+    const sat = (1 + vivid * 0.35).toFixed(3);
+    const bright = (1 + vivid * 0.08).toFixed(3);
+
+    document.body.style.background =
+      `radial-gradient(circle at 20% 15%, rgba(${blue},130,246,${0.10 + vivid*0.22}), transparent 45%),
+       radial-gradient(circle at 80% 80%, rgba(${purple},85,247,${0.08 + vivid*0.18}), transparent 45%),
+       #05060a`;
+
+    document.body.style.filter = `saturate(${sat}) brightness(${bright})`;
+
+    if (state.flashIntensity <= 0.02 && !state.comboActive) {
+      document.body.classList.remove("combo-flash");
+    }
+  }
+
+  // ---------- Save/Load ----------
+  function makeSavePayload() {
+    return {
+      version: 2,
+      savedAt: Date.now(),
+      state: {
+        progress: state.progress,
+        speed: state.speed,
+        essence: state.essence,
+        loads: state.loads,
+        echoes: state.echoes,
+        essencePerLoad: state.essencePerLoad,
+        currentEra: state.currentEra,
+        nextEraAt: state.nextEraAt,
+        purchasedMeta: state.purchasedMeta,
+        purchasedUpgradeIds: state.purchasedUpgradeIds,
+        loreIndex: state.loreIndex,
+        buttonLevel: state.buttonLevel,
+        comboUpgradeLevel: state.comboUpgradeLevel,
+        runSpeedBonus: state.runSpeedBonus,
+        cycleMilestonesClaimed: state.cycleMilestonesClaimed
+      }
+    };
+  }
+
+  function applyLoadedState(loaded) {
+    const s = loaded?.state;
+    if (!s || typeof s !== "object") return false;
+
+    state.progress = Number(s.progress) || 0;
+    state.speed = Number(s.speed) || 1;
+    state.essence = Number(s.essence) || 0;
+    state.loads = Number(s.loads) || 0;
+    state.echoes = Number(s.echoes) || 0;
+    state.essencePerLoad = Number(s.essencePerLoad) || 1;
+    state.currentEra = eraOrder.includes(s.currentEra) ? s.currentEra : "pixel-genesis";
+    state.nextEraAt = Number(s.nextEraAt) || 50;
+    state.purchasedMeta = Array.isArray(s.purchasedMeta) ? s.purchasedMeta : [];
+    state.purchasedUpgradeIds = (s.purchasedUpgradeIds && typeof s.purchasedUpgradeIds === "object") ? s.purchasedUpgradeIds : {};
+    state.loreIndex = Number(s.loreIndex) || 0;
+    state.buttonLevel = clamp(Number(s.buttonLevel) || 0, 0, buttonLevels.length);
+    state.comboUpgradeLevel = clamp(Number(s.comboUpgradeLevel) || 0, 0, comboLevels.length);
+
+    state.runSpeedBonus = Number(s.runSpeedBonus) || 0;
+    state.cycleMilestonesClaimed = Math.max(0, Math.floor(Number(s.cycleMilestonesClaimed) || 0));
+
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+    state.isHoldingButton = false;
+    state.milestoneChoicePending = false;
+    return true;
+  }
+
+  function saveGame(reason = "autosave") {
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(makeSavePayload()));
+      saveIndicatorEl.textContent = reason === "autosave" ? "Saved" : `Saved (${reason})`;
+      setTimeout(() => {
+        if (saveIndicatorEl.textContent.startsWith("Saved")) saveIndicatorEl.textContent = "Ready";
+      }, 1200);
+    } catch (err) {
+      console.error("Save failed:", err);
+      saveIndicatorEl.textContent = "Save error";
+    }
+  }
+
+  function loadGame() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      const ok = applyLoadedState(parsed);
+      if (ok) {
+        saveIndicatorEl.textContent = "Loaded";
+        setTimeout(() => (saveIndicatorEl.textContent = "Ready"), 1200);
+      }
+      return ok;
+    } catch (err) {
+      console.error("Load failed:", err);
+      return false;
+    }
+  }
+
+  function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch {}
+  }
+
+  function resetRunStateForPrestige() {
+    state.progress = 0;
+    state.essence = 0;
+    state.loads = 0;
+    state.speed = 1;
+    state.essencePerLoad = 1;
+    state.currentEra = "pixel-genesis";
+    state.nextEraAt = 50;
+    state.loreIndex = 0;
+    state.isHoldingButton = false;
+
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+
+    state.runSpeedBonus = 0;
+    state.cycleMilestonesClaimed = 0;
+    state.milestoneChoicePending = false;
+    hideMilestoneChoiceModal();
+  }
+
+  function fullHardReset() {
+    state.progress = 0;
+    state.speed = 1;
+    state.essence = 0;
+    state.loads = 0;
+    state.echoes = 0;
+    state.essencePerLoad = 1;
+    state.currentEra = "pixel-genesis";
+    state.nextEraAt = 50;
+    state.purchasedMeta = [];
+    state.purchasedUpgradeIds = {};
+    state.loreIndex = 0;
+    state.buttonLevel = 0;
+    state.comboUpgradeLevel = 0;
+    state.isHoldingButton = false;
+    state.comboActive = false;
+    state.comboSeconds = 0;
+    state.comboProgressAcc = 0;
+    state.comboCooldownRemaining = 0;
+    state.clickTimes = [];
+    state.flashIntensity = 0;
+
+    state.runSpeedBonus = 0;
+    state.cycleMilestonesClaimed = 0;
+    state.milestoneChoicePending = false;
+    hideMilestoneChoiceModal();
+
+    particles.length = 0;
+    mergeFlashBursts.length = 0;
+    particleRespawnTimer = 0;
+    ensureParticlePopulationInstant();
+
+    clearSave();
+
+    loreBoxEl.textContent = "Timeline wiped. A new universe begins.";
+    updateStats();
+    updateEraDisplay();
+    renderEraUpgrades();
+    updatePrestigeUI();
+    updateClickProgressUI();
+    updateComboUI();
+    updateRunBonusUI();
+    saveIndicatorEl.textContent = "Reset";
+  }
+
+  // ---------- Milestone Choice ----------
+  function showMilestoneChoiceModal() {
+    const milestoneAt = getNextCycleMilestoneAt();
+    milestoneBodyEl.textContent =
+      `You reached ${milestoneAt} cycles in this reboot. Choose one reward now: +${CYCLE_REWARD_SPEED.toFixed(1)}%/sec speed or +${CYCLE_REWARD_ESSENCE} Essence.`;
+    milestoneOverlayEl.classList.add("show");
+    milestoneOverlayEl.setAttribute("aria-hidden", "false");
+    state.milestoneChoicePending = true;
+  }
+
+  function hideMilestoneChoiceModal() {
+    milestoneOverlayEl.classList.remove("show");
+    milestoneOverlayEl.setAttribute("aria-hidden", "true");
+    state.milestoneChoicePending = false;
+  }
+
+  function checkCycleMilestoneTrigger() {
+    if (state.milestoneChoicePending) return;
+    if (state.loads >= getNextCycleMilestoneAt()) {
+      showMilestoneChoiceModal();
+      updateRunBonusUI();
+    }
+  }
+
+  function chooseMilestoneReward(type) {
+    if (!state.milestoneChoicePending) return;
+
+    if (type === "speed") {
+      state.runSpeedBonus += CYCLE_REWARD_SPEED;
+      loreBoxEl.textContent = `Milestone reward chosen: +${CYCLE_REWARD_SPEED.toFixed(1)}%/sec run speed.`;
+    } else {
+      state.essence += CYCLE_REWARD_ESSENCE;
+      loreBoxEl.textContent = `Milestone reward chosen: +${CYCLE_REWARD_ESSENCE} Essence.`;
+    }
+
+    state.cycleMilestonesClaimed += 1;
+    hideMilestoneChoiceModal();
+    updateStats();
+    updateRunBonusUI();
+    renderEraUpgrades();
+    saveGame("milestone");
+  }
+
+  function updateRunBonusUI() {
+    const nextAt = getNextCycleMilestoneAt();
+    const pendingText = state.milestoneChoicePending ? " · Reward choice pending" : "";
+    runBonusDisplayEl.textContent =
+      `Run bonus: +${state.runSpeedBonus.toFixed(1)}%/sec · Next milestone: ${nextAt} cycles${pendingText}`;
+  }
+
+  // ---------- Game ----------
+  function applyProgress(amount) {
+    if (amount <= 0) return;
+    state.progress += amount;
+    while (state.progress >= 100) completeLoadCycle();
+    barFillEl.style.width = Math.min(state.progress, 100) + "%";
+  }
+
+  async function loadMasterJSON() {
+    try {
+      const res = await fetch("upgrades.json");
+      const data = await res.json();
+      state.upgradesByEra = data.eras || {};
+      state.metaUpgrades = data.meta || [];
+
+      if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
+
+      const hadSave = loadGame();
+
+      if (!state.upgradesByEra[state.currentEra]) state.upgradesByEra[state.currentEra] = [];
+
+      renderEraUpgrades();
+      updateStats();
+      updateEraDisplay();
+      updatePrestigeUI();
+      updateClickProgressUI();
+      updateComboUI();
+      updateRunBonusUI();
+
+      if (!hadSave) saveIndicatorEl.textContent = "Ready";
+    } catch (e) {
+      console.error("Failed to load upgrades.json", e);
+      loreBoxEl.textContent = "The universe hesitates. (upgrades.json not found)";
+      updateClickProgressUI();
+      updateComboUI();
+      updateRunBonusUI();
+    }
+  }
+
+  function isUpgradePurchased(id) { return !!state.purchasedUpgradeIds[id]; }
+
+  function renderEraUpgrades() {
+    upgradeListEl.innerHTML = "";
+
+    const currentButtonLevel = getCurrentButtonLevelData();
+    const nextButtonLevel = getNextButtonLevelData();
+    const currentEraIndex = getCurrentEraIndex();
+
+    const buttonUpgrade = {
+      id: "manual-injector-level",
+      name: nextButtonLevel ? `Manual Injector Lv.${nextButtonLevel.level}` : "Manual Injector MAX",
+      cost: nextButtonLevel ? nextButtonLevel.cost : 0,
+      desc: nextButtonLevel
+        ? `Upgrade to ${nextButtonLevel.click}%/click and ${nextButtonLevel.hold}%/sec hold.`
+        : `Maxed at ${currentButtonLevel ? currentButtonLevel.click : 0}%/click and ${currentButtonLevel ? currentButtonLevel.hold : 0}%/sec hold.`
+    };
+
+    const currentComboLevel = getCurrentComboLevelData();
+    const nextComboLevel = getNextComboLevelData();
+    const comboUpgrade = {
+      id: "combo-level",
+      name: nextComboLevel ? `Combo Core Lv.${nextComboLevel.level}` : "Combo Core MAX",
+      cost: nextComboLevel ? nextComboLevel.cost : 0,
+      desc: nextComboLevel
+        ? `Raise combo cap to ${nextComboLevel.maxSeconds === Infinity ? "∞" : nextComboLevel.maxSeconds}s and cooldown ${nextComboLevel.cooldown}s.`
+        : `Maxed at ${currentComboLevel ? (currentComboLevel.maxSeconds === Infinity ? "∞" : currentComboLevel.maxSeconds) : 0}s cap and ${currentComboLevel ? currentComboLevel.cooldown : 0}s cooldown.`
+    };
+
+    const eraUpgrades = state.upgradesByEra[state.currentEra] || [];
+    const upgrades = [buttonUpgrade, comboUpgrade, ...eraUpgrades];
+
+    upgrades.forEach(upg => {
+      const div = document.createElement("div");
+      div.className = "upgrade";
+
+      const header = document.createElement("div");
+      header.className = "upgrade-header";
+
+      const name = document.createElement("div");
+      name.className = "upgrade-name";
+      name.textContent = upg.name;
+
+      const cost = document.createElement("div");
+      cost.className = "upgrade-cost";
+
+      const desc = document.createElement("div");
+      desc.className = "upgrade-desc";
+
+      const button = document.createElement("button");
+      button.className = "game-button";
+
+      if (upg.id === "manual-injector-level") {
+        if (!nextButtonLevel) {
+          cost.textContent = "MAX";
+          desc.textContent = upg.desc;
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          const requiredEraName = eraDisplayNames[eraOrder[nextButtonLevel.requiredEraIndex]];
+          const eraUnlocked = currentEraIndex >= nextButtonLevel.requiredEraIndex;
+          const canAfford = state.essence >= nextButtonLevel.cost;
+
+          cost.textContent = `Cost: ${nextButtonLevel.cost} essence · Requires ${requiredEraName}`;
+          desc.textContent = eraUnlocked
+            ? upg.desc
+            : `Locked until ${requiredEraName}. Will upgrade to ${nextButtonLevel.click}%/click, ${nextButtonLevel.hold}%/sec hold.`;
+
+          button.textContent = "Purchase";
+          button.disabled = !(eraUnlocked && canAfford);
+
+          button.addEventListener("click", () => {
+            if (getCurrentEraIndex() < nextButtonLevel.requiredEraIndex) return;
+            if (state.essence < nextButtonLevel.cost) return;
+
+            state.essence -= nextButtonLevel.cost;
+            state.buttonLevel = nextButtonLevel.level;
+            loreBoxEl.textContent = state.buttonLevel === 1
+              ? "A manual injector hums to life beneath the bar."
+              : `Manual injector reaches Lv.${state.buttonLevel}.`;
+
+            updateStats();
+            updateClickProgressUI();
+            renderEraUpgrades();
+            saveGame("upgrade");
+          });
+        }
+      } else if (upg.id === "combo-level") {
+        if (!nextComboLevel) {
+          cost.textContent = "MAX";
+          desc.textContent = upg.desc;
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          const canAfford = state.essence >= nextComboLevel.cost;
+          cost.textContent = `Cost: ${nextComboLevel.cost} essence`;
+          desc.textContent = upg.desc;
+          button.textContent = "Purchase";
+          button.disabled = !canAfford;
+
+          button.addEventListener("click", () => {
+            if (state.essence < nextComboLevel.cost) return;
+            state.essence -= nextComboLevel.cost;
+            state.comboUpgradeLevel = nextComboLevel.level;
+
+            const current = getCurrentComboLevelData();
+            if (current && Number.isFinite(current.maxSeconds)) {
+              state.comboSeconds = Math.min(state.comboSeconds, current.maxSeconds);
+            }
+
+            loreBoxEl.textContent = `Combo Core reaches Lv.${state.comboUpgradeLevel}.`;
+            updateStats();
+            updateComboUI();
+            renderEraUpgrades();
+            saveGame("upgrade");
+          });
+        }
+      } else {
+        const upgCost = Number(upg.cost) || 0;
+        const already = isUpgradePurchased(upg.id);
+
+        cost.textContent = `Cost: ${upgCost} essence`;
+        desc.textContent = upg.desc;
+
+        if (already) {
+          button.textContent = "Purchased";
+          button.disabled = true;
+        } else {
+          button.textContent = "Purchase";
+          button.disabled = state.essence < upgCost;
+          button.addEventListener("click", () => {
+            if (state.essence < upgCost || isUpgradePurchased(upg.id)) return;
+            state.essence -= upgCost;
+            applyUpgradeEffect(upg.effect || {});
+            state.purchasedUpgradeIds[upg.id] = true;
+            updateStats();
+            renderEraUpgrades();
+            saveGame("upgrade");
+          });
+        }
+      }
+
+      header.appendChild(name);
+      header.appendChild(cost);
+      div.appendChild(header);
+      div.appendChild(desc);
+      div.appendChild(button);
+      upgradeListEl.appendChild(div);
+    });
+  }
+
+  function applyUpgradeEffect(effect) {
+    if (effect.speed) state.speed += effect.speed;
+    if (effect.essencePerLoad) state.essencePerLoad += effect.essencePerLoad;
+    if (effect.layerUnlock) console.log("Layer unlock:", effect.layerUnlock);
+  }
+
+  function updateStats() {
+    loadsEl.textContent = state.loads;
+    essenceEl.textContent = state.essence;
+    echoesEl.textContent = state.echoes;
+    speedDisplayEl.textContent = getTotalSpeedPerSecond().toFixed(1);
+  }
+
+  function updateEraDisplay() {
+    eraNameEl.textContent = eraDisplayNames[state.currentEra] || state.currentEra;
+    barLabelEl.textContent = `Loading: ${eraLore[state.currentEra] || "something indescribable"}… (${state.loads} cycles)`;
+  }
+
+  function updateClickProgressUI() {
+    const current = getCurrentButtonLevelData();
+    const next = getNextButtonLevelData();
+
+    if (!current) {
+      clickProgressButtonEl.disabled = true;
+      clickProgressButtonEl.hidden = true;
+      clickProgressLine1El.textContent = "Unlock Manual Injector in Era Upgrades.";
+      clickProgressLine2El.textContent = "";
+      return;
+    }
+
+    clickProgressButtonEl.hidden = false;
+    clickProgressButtonEl.disabled = state.milestoneChoicePending;
+    clickProgressButtonEl.textContent = `Inject +${current.click}%`;
+    clickProgressLine1El.textContent = `Manual Injector Lv.${current.level} · ${current.click}%/click · ${current.hold}%/sec hold`;
+
+    if (next) {
+      const reqName = eraDisplayNames[eraOrder[next.requiredEraIndex]];
+      clickProgressLine2El.textContent = `Next Lv.${next.level}: ${next.click}%/click, ${next.hold}%/sec hold · ${next.cost} essence · ${reqName}`;
+    } else {
+      clickProgressLine2El.textContent = "Manual Injector maxed.";
+    }
+  }
+
+  function updateComboUI() {
+    const levelData = getCurrentComboLevelData();
+    const level = state.comboUpgradeLevel;
+
+    if (!levelData) {
+      comboLine1El.textContent = "Combo Lv.0 · Locked";
+      comboLine2El.textContent = `Need Combo Core Lv.1 (cost ${comboLevels[0].cost} essence)`;
+      comboLine3El.textContent = "Cooldown: N/A";
+      return;
+    }
+
+    const maxText = Number.isFinite(levelData.maxSeconds) ? `${levelData.maxSeconds}s max` : "∞ max";
+    const cooldownText = `${Math.max(0, state.comboCooldownRemaining).toFixed(1)}s`;
+
+    if (state.comboActive) {
+      const bonus = state.comboSeconds * COMBO_BONUS_PER_SECOND;
+      comboLine1El.textContent = `Combo Lv.${level} · ${state.comboSeconds}s active`;
+      comboLine2El.textContent = `Bonus: +${bonus.toFixed(1)}%/sec · Maintain ${COMBO_MAINTAIN_CPS} clicks/sec`;
+      comboLine3El.textContent = `Cap: ${maxText} · Cooldown on break: ${levelData.cooldown}s`;
+    } else {
+      comboLine1El.textContent = `Combo Lv.${level} · Inactive`;
+      comboLine2El.textContent = `Trigger: ${COMBO_TRIGGER_CPS} clicks in ${CLICK_WINDOW_SEC.toFixed(1)}s`;
+      comboLine3El.textContent = state.comboCooldownRemaining > 0
+        ? `Cooldown: ${cooldownText}`
+        : `Cooldown: Ready · Cap ${maxText}`;
+    }
+  }
+
+  function nextLore() {
+    const line = loreLines[state.loreIndex % loreLines.length];
+    state.loreIndex++;
+    loreBoxEl.textContent = line;
+  }
+
+  function checkEraProgress() {
+    if (state.loads >= state.nextEraAt) {
+      const idx = eraOrder.indexOf(state.currentEra);
+      const nextEra = eraOrder[idx + 1];
+      if (nextEra) {
+        state.currentEra = nextEra;
+        state.nextEraAt *= 2;
+        loreBoxEl.textContent = eraLore[nextEra] || "A new layer of reality begins to load.";
+        updateEraDisplay();
+        renderEraUpgrades();
+        updateClickProgressUI();
+      }
+    }
+  }
+
+  function calculateEchoGain() {
+    const eraIndex = eraOrder.indexOf(state.currentEra);
+    const base = Math.floor(state.loads / 50);
+    return Math.max(0, base + eraIndex);
+  }
+
+  function canPrestige() { return state.loads >= 100; }
+
+  function updatePrestigeUI() {
+    const gain = calculateEchoGain();
+    prestigeInfoEl.textContent = `Reboot now to gain approximately ${gain} Echoes based on this run.`;
+    prestigeButtonEl.disabled = !canPrestige() || state.milestoneChoicePending;
+  }
+
+  function completeLoadCycle() {
+    state.progress -= 100;
+    state.loads += 1;
+    state.essence += state.essencePerLoad;
+    nextLore();
+    checkEraProgress();
+    updateStats();
+    updateEraDisplay();
+    renderEraUpgrades();
+    updatePrestigeUI();
+
+    checkCycleMilestoneTrigger();
+  }
+
+  function updateCombo(dt) {
+    if (state.comboUpgradeLevel <= 0) return;
+
+    if (state.comboCooldownRemaining > 0) {
+      state.comboCooldownRemaining = Math.max(0, state.comboCooldownRemaining - dt);
+      if (state.comboCooldownRemaining === 0) state.clickTimes = [];
+      return;
+    }
+
+    const t = performance.now() / 1000;
+    state.clickTimes = state.clickTimes.filter(ts => (t - ts) <= CLICK_WINDOW_SEC);
+    const cps = state.clickTimes.length / CLICK_WINDOW_SEC;
+    const levelData = getCurrentComboLevelData();
+
+    if (!levelData) return;
+
+    if (!state.comboActive) {
+      if (cps >= COMBO_TRIGGER_CPS) {
+        state.comboActive = true;
+        state.comboSeconds = 0;
+        state.comboProgressAcc = 0;
+        loreBoxEl.textContent = "Combo online. Reality jitters.";
+      }
+      return;
+    }
+
+    if (cps < COMBO_MAINTAIN_CPS) {
+      state.comboActive = false;
+      state.comboCooldownRemaining = levelData.cooldown;
+      state.comboSeconds = 0;
+      state.comboProgressAcc = 0;
+      loreBoxEl.textContent = "Combo collapsed. Stabilizing...";
+      return;
+    }
+
+    state.comboSeconds += dt;
+    if (Number.isFinite(levelData.maxSeconds) && state.comboSeconds >= levelData.maxSeconds) {
+      state.comboSeconds = levelData.maxSeconds;
+      state.comboActive = false;
+      state.comboCooldownRemaining = levelData.cooldown;
+      state.comboProgressAcc = 0;
+      loreBoxEl.textContent = "Combo cap reached. Cooldown engaged.";
+      return;
+    }
+
+    const comboBonusPerSec = state.comboSeconds * COMBO_BONUS_PER_SECOND;
+    const comboGain = comboBonusPerSec * dt;
+    state.comboProgressAcc += comboGain;
+    if (state.comboProgressAcc > 0) applyProgress(state.comboProgressAcc), state.comboProgressAcc = 0;
+  }
+
+  function registerClickForCombo() {
+    if (state.comboUpgradeLevel <= 0) return;
+    if (state.comboCooldownRemaining > 0) return;
+    state.clickTimes.push(performance.now() / 1000);
+  }
+
+  let lastTs = performance.now();
+
+  function gameLoop(ts) {
+    const dt = Math.max(0, (ts - lastTs) / 1000);
+    lastTs = ts;
+
+    const effectiveSpeed = getTotalSpeedPerSecond() + getHoldSpeedPerSecond();
+    applyProgress(effectiveSpeed * dt);
+
+    updateCombo(dt);
+
+    updateParticles(dt);
+    updateParticleRespawn(dt);
+    drawParticles();
+
+    updateBackgroundVisuals(dt);
+    updateComboUI();
+    updatePrestigeUI();
+    updateClickProgressUI();
+    updateRunBonusUI();
+    requestAnimationFrame(gameLoop);
+  }
+
+  // ---------- Input ----------
+  clickProgressButtonEl.addEventListener("click", () => {
+    const current = getCurrentButtonLevelData();
+    if (!current || state.milestoneChoicePending) return;
+    applyProgress(current.click);
+    registerClickForCombo();
+    triggerClickFlash();
+  });
+
+  clickProgressButtonEl.addEventListener("pointerdown", (e) => {
+    const current = getCurrentButtonLevelData();
+    if (!current || state.milestoneChoicePending) return;
+    state.isHoldingButton = true;
+    clickProgressButtonEl.classList.add("held");
+    registerClickForCombo();
+    triggerClickFlash();
+    e.preventDefault();
+  });
+
+  window.addEventListener("pointerup", () => {
+    state.isHoldingButton = false;
+    clickProgressButtonEl.classList.remove("held");
+  });
+
+  clickProgressButtonEl.addEventListener("pointerleave", () => {
+    state.isHoldingButton = false;
+    clickProgressButtonEl.classList.remove("held");
+  });
+
+  leftPanelEl.addEventListener("pointermove", (e) => {
+    const rect = leftPanelEl.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+    mouse.inside = true;
+  });
+  leftPanelEl.addEventListener("pointerenter", () => { mouse.inside = true; });
+  leftPanelEl.addEventListener("pointerleave", () => { mouse.inside = false; });
+
+  milestoneSpeedBtnEl.addEventListener("click", () => chooseMilestoneReward("speed"));
+  milestoneEssenceBtnEl.addEventListener("click", () => chooseMilestoneReward("essence"));
+
+  prestigeButtonEl.addEventListener("click", () => {
+    if (!canPrestige() || state.milestoneChoicePending) return;
+    const gain = calculateEchoGain();
+    state.echoes += gain;
+    loreBoxEl.textContent = `Reality rebooted. You gained ${gain} Echoes.`;
+    resetRunStateForPrestige();
+
+    particles.length = 0;
+    mergeFlashBursts.length = 0;
+    particleRespawnTimer = 0;
+    ensureParticlePopulationInstant();
+
+    updateStats();
+    updateEraDisplay();
+    updatePrestigeUI();
+    updateClickProgressUI();
+    updateComboUI();
+    updateRunBonusUI();
+    renderEraUpgrades();
+    saveGame("prestige");
+  });
+
+  hiddenResetTriggerEl.addEventListener("click", () => {
+    const now = performance.now();
+    if (state.resetStageTimer && (now - state.resetStageTimer > 2500)) state.resetStage = 0;
+    state.resetStageTimer = now;
+    state.resetStage += 1;
+    if (state.resetStage >= 3) {
+      state.resetStage = 0;
+      fullHardReset();
+    }
+  });
+
+  window.addEventListener("resize", resizeParticleCanvas);
+
+  // Save hooks
+  window.addEventListener("beforeunload", () => saveGame("exit"));
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) saveGame("hidden");
+  });
+  setInterval(() => saveGame("autosave"), AUTOSAVE_MS);
+
+  // Boot
+  loadMasterJSON().then(() => {
+    resizeParticleCanvas();
+    ensureParticlePopulationInstant();
+    lastTs = performance.now();
+    requestAnimationFrame(gameLoop);
+  });
+</script>
+</body>
+</html>
