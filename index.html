@@ -645,17 +645,15 @@
   const mouse = { x: 0, y: 0, inside: false };
 
   function particleRadiusForValue(value) {
-    // 1–2px core
     return Math.min(2, 1 + Math.log2(value) * 0.2);
   }
 
   function particleGlowRadiusForValue(value) {
-    // around 10px glow, slightly larger at higher values
     return 9 + Math.log2(value) * 0.35;
   }
 
   function particleColorForValue(value, alpha = 1) {
-    const step = Math.log2(value); // 0..5
+    const step = Math.log2(value);
     const hue = 204 + step * 9;
     const sat = 88;
     const light = 68 + step * 4.2;
@@ -688,11 +686,7 @@
 
     particles.push({
       id: particleIdCounter++,
-      x, y,
-      vx: vel.vx,
-      vy: vel.vy,
-      value,
-      radius,
+      x, y, vx: vel.vx, vy: vel.vy, value, radius,
       fade: fadeIn ? 0 : 1,
       fadeInRate: 1 / PARTICLE_FADE_IN_SEC,
       mergeCooldown: 0
@@ -700,9 +694,7 @@
   }
 
   function ensureParticlePopulationInstant() {
-    while (particles.length < PARTICLE_INITIAL_COUNT) {
-      spawnParticle(PARTICLE_MIN_VALUE, false);
-    }
+    while (particles.length < PARTICLE_INITIAL_COUNT) spawnParticle(PARTICLE_MIN_VALUE, false);
   }
 
   function scheduleParticleRespawn() {
@@ -720,10 +712,9 @@
   }
 
   function addMergeFlash(x, y, value) {
-    const scale = Math.log2(value); // 1..5
+    const scale = Math.log2(value);
     mergeFlashBursts.push({
-      x, y,
-      age: 0,
+      x, y, age: 0,
       life: 0.35 + scale * 0.04,
       radius: 12 + scale * 8
     });
@@ -736,10 +727,8 @@
     const my = (a.y + b.y) * 0.5;
 
     if (a.value === PARTICLE_MAX_VALUE && b.value === PARTICLE_MAX_VALUE) {
-      const ia = particles.indexOf(a);
-      if (ia >= 0) particles.splice(ia, 1);
-      const ib2 = particles.indexOf(b);
-      if (ib2 >= 0) particles.splice(ib2, 1);
+      const ia = particles.indexOf(a); if (ia >= 0) particles.splice(ia, 1);
+      const ib2 = particles.indexOf(b); if (ib2 >= 0) particles.splice(ib2, 1);
 
       state.essence += 1;
       updateStats();
@@ -752,22 +741,15 @@
     const newValue = a.value * 2;
     if (newValue > PARTICLE_MAX_VALUE) return;
 
-    const vel = {
-      vx: (a.vx + b.vx) * 0.5,
-      vy: (a.vy + b.vy) * 0.5
-    };
+    const vel = { vx: (a.vx + b.vx) * 0.5, vy: (a.vy + b.vy) * 0.5 };
 
-    const ia = particles.indexOf(a);
-    if (ia >= 0) particles.splice(ia, 1);
-    const ib2 = particles.indexOf(b);
-    if (ib2 >= 0) particles.splice(ib2, 1);
+    const ia = particles.indexOf(a); if (ia >= 0) particles.splice(ia, 1);
+    const ib2 = particles.indexOf(b); if (ib2 >= 0) particles.splice(ib2, 1);
 
     particles.push({
       id: particleIdCounter++,
-      x: mx,
-      y: my,
-      vx: vel.vx,
-      vy: vel.vy,
+      x: mx, y: my,
+      vx: vel.vx, vy: vel.vy,
       value: newValue,
       radius: particleRadiusForValue(newValue),
       fade: 1,
@@ -808,33 +790,21 @@
       p.vy *= Math.pow(PARTICLE_FRICTION, dt * 60);
 
       const r = p.radius;
-      if (p.x - r < 0) {
-        p.x = r;
-        p.vx = Math.abs(p.vx) * PARTICLE_BOUNCE;
-      } else if (p.x + r > rect.width) {
-        p.x = rect.width - r;
-        p.vx = -Math.abs(p.vx) * PARTICLE_BOUNCE;
-      }
+      if (p.x - r < 0) { p.x = r; p.vx = Math.abs(p.vx) * PARTICLE_BOUNCE; }
+      else if (p.x + r > rect.width) { p.x = rect.width - r; p.vx = -Math.abs(p.vx) * PARTICLE_BOUNCE; }
 
-      if (p.y - r < 0) {
-        p.y = r;
-        p.vy = Math.abs(p.vy) * PARTICLE_BOUNCE;
-      } else if (p.y + r > rect.height) {
-        p.y = rect.height - r;
-        p.vy = -Math.abs(p.vy) * PARTICLE_BOUNCE;
-      }
+      if (p.y - r < 0) { p.y = r; p.vy = Math.abs(p.vy) * PARTICLE_BOUNCE; }
+      else if (p.y + r > rect.height) { p.y = rect.height - r; p.vy = -Math.abs(p.vy) * PARTICLE_BOUNCE; }
     }
 
     for (let i = 0; i < particles.length; i++) {
       for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i];
-        const b = particles[j];
+        const a = particles[i], b = particles[j];
         if (!a || !b) continue;
         if (a.value !== b.value) continue;
         if (a.mergeCooldown > 0 || b.mergeCooldown > 0) continue;
 
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
+        const dx = b.x - a.x, dy = b.y - a.y;
         const minDist = a.radius + b.radius;
         const distSq = dx * dx + dy * dy;
 
@@ -859,7 +829,7 @@
 
     for (const p of particles) {
       const alpha = Math.max(0, Math.min(1, p.fade));
-      const baseOpacity = 0.5 * alpha; // target around 0.5
+      const baseOpacity = 0.5 * alpha;
       const glowR = particleGlowRadiusForValue(p.value);
 
       const glow = particleCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR);
@@ -897,6 +867,67 @@
   function nowSec() { return performance.now() / 1000; }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
+  // New schema compatibility helpers
+  function normalizeUpgrade(upg, indexInEra, eraId) {
+    const kind = upg.kind || "single";
+    const branch = upg.branch || (indexInEra % 2 === 0 ? "speed" : "power");
+    const hasFiniteMax = Number.isFinite(Number(upg.maxLevel));
+    const maxLevel = kind === "multi" ? (hasFiniteMax ? Number(upg.maxLevel) : Infinity) : 1;
+    const costScaling = Number(upg.costScaling) || 1.15;
+
+    return {
+      ...upg,
+      era: upg.era || eraId,
+      kind,
+      branch,
+      prereq: upg.prereq ?? null,
+      maxLevel,
+      costScaling
+    };
+  }
+
+  function getUpgradeLevel(id) {
+    const v = state.purchasedUpgradeIds[id];
+    if (v === true) return 1;
+    if (typeof v === "number") return v;
+    return 0;
+  }
+
+  function isUpgradePurchased(id) { return getUpgradeLevel(id) > 0; }
+
+  function isUpgradeUnlocked(upg) {
+    if (!upg.prereq) return true;
+    const reqs = Array.isArray(upg.prereq) ? upg.prereq : [upg.prereq];
+    return reqs.every(reqId => getUpgradeLevel(reqId) > 0);
+  }
+
+  function getUpgradeCurrentCost(upg) {
+    const lvl = getUpgradeLevel(upg.id);
+    if (upg.kind !== "multi") return Number(upg.cost) || 0;
+    const base = Number(upg.cost) || 0;
+    return Math.floor(base * Math.pow(upg.costScaling, lvl));
+  }
+
+  function isUpgradeMaxed(upg) {
+    const lvl = getUpgradeLevel(upg.id);
+    return Number.isFinite(upg.maxLevel) && lvl >= upg.maxLevel;
+  }
+
+function getUpgradeNameById(id) {
+  for (const eraId of Object.keys(state.upgradesByEra || {})) {
+    const list = state.upgradesByEra[eraId] || [];
+    for (let i = 0; i < list.length; i++) {
+      const n = normalizeUpgrade(list[i], i, eraId);
+      if (n.id === id) return n.name || id;
+    }
+  }
+
+  // also include special upgrades if referenced
+  if (id === "manual-injector-level") return "Manual Injector";
+  if (id === "combo-level") return "Combo Core";
+  return id;
+}
+
   function getCurrentButtonLevelData() {
     if (state.buttonLevel <= 0) return null;
     return buttonLevels[state.buttonLevel - 1] || null;
@@ -909,9 +940,7 @@
   }
   function getNextComboLevelData() { return comboLevels[state.comboUpgradeLevel] || null; }
 
-  function getTotalSpeedPerSecond() {
-    return state.speed + state.runSpeedBonus;
-  }
+  function getTotalSpeedPerSecond() { return state.speed + state.runSpeedBonus; }
 
   function getHoldSpeedPerSecond() {
     if (state.milestoneChoicePending || !state.isHoldingButton) return 0;
@@ -934,9 +963,7 @@
     const comboCap = getCurrentComboLevelData()?.maxSeconds;
     const comboRatio = state.comboActive && comboCap && Number.isFinite(comboCap)
       ? clamp(state.comboSeconds / comboCap, 0, 1)
-      : state.comboActive
-        ? clamp(state.comboSeconds / 20, 0, 1)
-        : 0;
+      : state.comboActive ? clamp(state.comboSeconds / 20, 0, 1) : 0;
 
     const vivid = clamp(state.flashIntensity * 0.55 + comboRatio * 0.65, 0, 1);
     const blue = Math.round(59 + vivid * 42);
@@ -959,7 +986,7 @@
   // ---------- Save/Load ----------
   function makeSavePayload() {
     return {
-      version: 2,
+      version: 3,
       savedAt: Date.now(),
       state: {
         progress: state.progress,
@@ -1203,8 +1230,6 @@
     }
   }
 
-  function isUpgradePurchased(id) { return !!state.purchasedUpgradeIds[id]; }
-
   function renderEraUpgrades() {
     upgradeListEl.innerHTML = "";
 
@@ -1232,7 +1257,8 @@
         : `Maxed at ${currentComboLevel ? (currentComboLevel.maxSeconds === Infinity ? "∞" : currentComboLevel.maxSeconds) : 0}s cap and ${currentComboLevel ? currentComboLevel.cooldown : 0}s cooldown.`
     };
 
-    const eraUpgrades = state.upgradesByEra[state.currentEra] || [];
+    const eraUpgradesRaw = state.upgradesByEra[state.currentEra] || [];
+    const eraUpgrades = eraUpgradesRaw.map((u, i) => normalizeUpgrade(u, i, state.currentEra));
     const upgrades = [buttonUpgrade, comboUpgrade, ...eraUpgrades];
 
     upgrades.forEach(upg => {
@@ -1321,23 +1347,58 @@
           });
         }
       } else {
-        const upgCost = Number(upg.cost) || 0;
-        const already = isUpgradePurchased(upg.id);
+        const normalized = upg;
+        const unlocked = isUpgradeUnlocked(normalized);
+        const level = getUpgradeLevel(normalized.id);
+        const maxed = isUpgradeMaxed(normalized);
+        const upgCost = getUpgradeCurrentCost(normalized);
+        const canAfford = state.essence >= upgCost;
+        const isSingle = normalized.kind !== "multi";
 
-        cost.textContent = `Cost: ${upgCost} essence`;
-        desc.textContent = upg.desc;
-
-        if (already) {
+        if (!unlocked) {
+          const reqIds = Array.isArray(normalized.prereq) ? normalized.prereq : [normalized.prereq];
+          const reqNames = reqIds.map(getUpgradeNameById).join(", ");
+          cost.textContent = "Locked";
+          desc.textContent = `${normalized.desc} · Requires: ${reqNames}`;
+          button.textContent = "Locked";
+          button.disabled = true;
+        } else if (isSingle && level > 0) {
+          cost.textContent = "Purchased";
+          desc.textContent = normalized.desc;
           button.textContent = "Purchased";
           button.disabled = true;
+        } else if (maxed) {
+          cost.textContent = "MAX";
+          desc.textContent = `${normalized.desc} · Level ${level}/${normalized.maxLevel}`;
+          button.textContent = "Maxed";
+          button.disabled = true;
         } else {
-          button.textContent = "Purchase";
-          button.disabled = state.essence < upgCost;
+          if (normalized.kind === "multi") {
+            cost.textContent = `Cost: ${upgCost} essence · Lv.${level}${Number.isFinite(normalized.maxLevel) ? `/${normalized.maxLevel}` : ""}`;
+            desc.textContent = normalized.desc;
+            button.textContent = `Purchase +1`;
+          } else {
+            cost.textContent = `Cost: ${upgCost} essence`;
+            desc.textContent = normalized.desc;
+            button.textContent = "Purchase";
+          }
+
+          button.disabled = !canAfford;
           button.addEventListener("click", () => {
-            if (state.essence < upgCost || isUpgradePurchased(upg.id)) return;
-            state.essence -= upgCost;
-            applyUpgradeEffect(upg.effect || {});
-            state.purchasedUpgradeIds[upg.id] = true;
+            if (!isUpgradeUnlocked(normalized)) return;
+            if (isUpgradeMaxed(normalized)) return;
+            const liveCost = getUpgradeCurrentCost(normalized);
+            if (state.essence < liveCost) return;
+
+            state.essence -= liveCost;
+            applyUpgradeEffect(normalized.effect || {});
+
+            if (normalized.kind === "multi") {
+              state.purchasedUpgradeIds[normalized.id] = getUpgradeLevel(normalized.id) + 1;
+            } else {
+              state.purchasedUpgradeIds[normalized.id] = true;
+            }
+
             updateStats();
             renderEraUpgrades();
             saveGame("upgrade");
@@ -1413,7 +1474,7 @@
 
     if (state.comboActive) {
       const bonus = state.comboSeconds * COMBO_BONUS_PER_SECOND;
-      comboLine1El.textContent = `Combo Lv.${level} · ${state.comboSeconds}s active`;
+      comboLine1El.textContent = `Combo Lv.${level} · ${state.comboSeconds.toFixed(1)}s active`;
       comboLine2El.textContent = `Bonus: +${bonus.toFixed(1)}%/sec · Maintain ${COMBO_MAINTAIN_CPS} clicks/sec`;
       comboLine3El.textContent = `Cap: ${maxText} · Cooldown on break: ${levelData.cooldown}s`;
     } else {
@@ -1470,7 +1531,6 @@
     updateEraDisplay();
     renderEraUpgrades();
     updatePrestigeUI();
-
     checkCycleMilestoneTrigger();
   }
 
@@ -1487,7 +1547,6 @@
     state.clickTimes = state.clickTimes.filter(ts => (t - ts) <= CLICK_WINDOW_SEC);
     const cps = state.clickTimes.length / CLICK_WINDOW_SEC;
     const levelData = getCurrentComboLevelData();
-
     if (!levelData) return;
 
     if (!state.comboActive) {
@@ -1522,7 +1581,10 @@
     const comboBonusPerSec = state.comboSeconds * COMBO_BONUS_PER_SECOND;
     const comboGain = comboBonusPerSec * dt;
     state.comboProgressAcc += comboGain;
-    if (state.comboProgressAcc > 0) applyProgress(state.comboProgressAcc), state.comboProgressAcc = 0;
+    if (state.comboProgressAcc > 0) {
+      applyProgress(state.comboProgressAcc);
+      state.comboProgressAcc = 0;
+    }
   }
 
   function registerClickForCombo() {
@@ -1551,6 +1613,7 @@
     updatePrestigeUI();
     updateClickProgressUI();
     updateRunBonusUI();
+
     requestAnimationFrame(gameLoop);
   }
 
@@ -1630,7 +1693,6 @@
 
   window.addEventListener("resize", resizeParticleCanvas);
 
-  // Save hooks
   window.addEventListener("beforeunload", () => saveGame("exit"));
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) saveGame("hidden");
